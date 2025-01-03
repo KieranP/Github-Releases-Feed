@@ -22,6 +22,7 @@
     // Interop
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedDeclarations": true,
     "isolatedModules": true,
 
     // Language & Environment
@@ -30,6 +31,9 @@
 
     // Completeness
     "skipLibCheck": true,
+
+    // Projects
+    "composite": true,
 
     // Type Checking
     "allowUnreachableCode": false,

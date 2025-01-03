@@ -131,6 +131,27 @@ export default eslintTS.config(
         },
       ],
 
+      // Override TSLint Rules
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        {
+          allowNumber: true,
+        },
+      ],
+
       // Enable Svelte Rules
       'svelte/button-has-type': 'error',
       'svelte/no-dom-manipulating': 'error',
@@ -152,27 +173,6 @@ export default eslintTS.config(
       'svelte/require-store-reactive-access': 'error',
       'svelte/sort-attributes': 'error',
       'svelte/valid-each-key': 'error',
-
-      // Override TSLint Rules
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          args: 'all',
-          argsIgnorePattern: '^_',
-          caughtErrors: 'all',
-          caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          ignoreRestSiblings: true,
-        },
-      ],
-      '@typescript-eslint/restrict-template-expressions': [
-        'error',
-        {
-          allowNumber: true,
-        },
-      ],
     },
   },
 
