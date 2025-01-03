@@ -104,7 +104,7 @@ export interface GithubRepository {
     login: string
     url: string
   }
-  primaryLanguage: {
+  primaryLanguage?: {
     id: string
     name: string
   }

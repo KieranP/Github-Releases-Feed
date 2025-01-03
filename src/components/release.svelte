@@ -63,10 +63,12 @@
           <p>{repo.description}</p>
 
           <div class="metrics">
-            <div>
-              <span>&#164;</span>
-              {repo.primaryLanguage.name}
-            </div>
+            {#if repo.primaryLanguage}
+              <div>
+                <span>&#164;</span>
+                {repo.primaryLanguage.name}
+              </div>
+            {/if}
 
             <div>
               <span>&#10025;</span>
@@ -157,7 +159,7 @@
   {#if settings.showLanguages}
     <div class="meta">
       {#each repo.languages.nodes as languageNode (languageNode.id)}
-        {@const secondary = languageNode.id !== repo.primaryLanguage.id}
+        {@const secondary = languageNode.id !== repo.primaryLanguage?.id}
         <div
           class="pill lang"
           class:secondary
