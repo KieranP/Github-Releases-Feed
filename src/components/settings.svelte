@@ -17,6 +17,18 @@
 
 <div id="settings_btn">
   <button
+    onclick={(): void => {
+      window.open('https://github.com/KieranP/Github-Releases-Feed', '_blank')
+    }}
+    type="button"
+  >
+    <img
+      alt="Github"
+      src="./github.svg"
+    /></button
+  >
+
+  <button
     onclick={toggleSettings}
     type="button"
   >
@@ -84,8 +96,8 @@
 
   #settings {
     position: fixed;
-    top: 55px;
-    right: 55px;
+    top: 60px;
+    right: 20px;
     z-index: 100;
     width: 300px;
     padding: 20px;
