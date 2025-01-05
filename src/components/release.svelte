@@ -112,7 +112,7 @@
     <a
       href={release.url}
       rel="noopener noreferrer"
-      target="_blank">{release.name}</a
+      target="_blank">{release.name || release.tagName}</a
     >
 
     {#if release.isPrerelease || release.isDraft}

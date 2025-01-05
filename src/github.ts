@@ -37,6 +37,7 @@ export const reposQuery = `
               isPrerelease
               name
               publishedAt
+              tagName
               updatedAt
               url
             }
@@ -83,6 +84,7 @@ export interface GithubRelease {
   isPrerelease: boolean
   name: string
   publishedAt: string
+  tagName: string
   updatedAt: string
   url: string
 }
