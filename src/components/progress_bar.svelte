@@ -51,7 +51,7 @@
     margin: 0;
     width: 100%;
     max-width: 1000px;
-    background-color: #eee;
+    background-color: #fafafa;
 
     span {
       display: inline-block;

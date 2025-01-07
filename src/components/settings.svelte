@@ -61,6 +61,16 @@
       </label>
     </div>
 
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          bind:checked={settings.showIgnoredRepos}
+        />
+        Show Ignored Repositories
+      </label>
+    </div>
+
     {#if githubToken}
       <div id="logout">
         <button
@@ -86,6 +96,7 @@
       margin: 0;
       padding: 5px 8px;
       line-height: 15px;
+      cursor: pointer;
 
       img {
         width: 15px;

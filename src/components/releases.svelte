@@ -1,6 +1,8 @@
 <script lang="ts">
   import Release from './release.svelte'
 
+  import { settings } from '../state.svelte'
+
   import type { ReleaseObj } from 'src/github'
 
   interface Props {
@@ -12,7 +14,10 @@
 
 <div id="releases">
   {#each allReleases as release (release.id)}
-    <Release {release} />
+    {@const ignored = settings.ignoredRepos.has(release.repo.name)}
+    {#if settings.showIgnoredRepos || !ignored}
+      <Release {release} />
+    {/if}
   {/each}
 </div>
 

@@ -14,10 +14,12 @@
   let descriptionDiv = $state<HTMLDivElement>()
   let expandDescriptionDiv = $state<HTMLDivElement>()
   let oversized = $state(false)
+  let menuOpen = $state(false)
 
   const repo = $derived(release.repo)
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
+  const ignored = $derived(settings.ignoredRepos.has(repo.name))
 
   const starsFormatter = new Intl.NumberFormat('en', {
     notation: 'compact',
@@ -28,6 +30,29 @@
   function expandDescription(): void {
     if (descriptionDiv) descriptionDiv.classList.remove('truncated')
     if (expandDescriptionDiv) expandDescriptionDiv.style.display = 'none'
+  }
+
+  function toggleMenu(): void {
+    menuOpen = !menuOpen
+  }
+
+  function ignoreRepo(): void {
+    settings.ignoredRepos.add(repo.name)
+    persistIgnoredRepos()
+    toggleMenu()
+  }
+
+  function unignoreRepo(): void {
+    settings.ignoredRepos.delete(repo.name)
+    persistIgnoredRepos()
+    toggleMenu()
+  }
+
+  function persistIgnoredRepos(): void {
+    localStorage.setItem(
+      'ignoredRepos',
+      JSON.stringify([...settings.ignoredRepos]),
+    )
   }
 
   $effect(() => {
@@ -106,7 +131,48 @@
         {intlFormatDistance(release.publishedAt, new Date())}
       </div>
     </div>
+
+    <div class="spacer"></div>
+
+    {#if ignored}
+      <div>
+        <img
+          class="ignored"
+          alt="Ignored Repository"
+          src="./ignored.svg"
+        />
+      </div>
+    {/if}
+
+    <div class="options">
+      <button
+        onclick={toggleMenu}
+        type="button"
+        ><img
+          alt="Release Options"
+          src="./three-dots.svg"
+        /></button
+      >
+    </div>
   </div>
+
+  {#if menuOpen}
+    <div class="menu">
+      <div>
+        {#if ignored}
+          <button
+            onclick={unignoreRepo}
+            type="button">Unignore this repository</button
+          >
+        {:else}
+          <button
+            onclick={ignoreRepo}
+            type="button">Ignore this repository</button
+          >
+        {/if}
+      </div>
+    </div>
+  {/if}
 
   <div class="name">
     <a
@@ -250,6 +316,56 @@
 
       .time {
         font-size: 13px;
+      }
+
+      .spacer {
+        flex-grow: 1;
+      }
+
+      .ignored {
+        width: 20px;
+        height: 20px;
+      }
+
+      .options {
+        button {
+          background-color: transparent;
+          border: none;
+          outline: none;
+          cursor: pointer;
+
+          img {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 20px;
+      z-index: 100;
+      width: 300px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      background-color: #fdfdfd;
+      filter: drop-shadow(5px 5px 5px #ccc);
+
+      button {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        text-align: left;
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #f6f6f6;
+        }
       }
     }
 
