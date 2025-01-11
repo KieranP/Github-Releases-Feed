@@ -13,12 +13,14 @@ if (ignoredReposRaw !== null) {
 
 export const settings: {
   expandDescriptions: boolean
-  showLanguages: boolean
-  showIgnoredRepos: boolean
+  hidePrereleases: boolean
   ignoredRepos: Set<string>
+  showIgnoredRepos: boolean
+  showLanguages: boolean
 } = $state({
   expandDescriptions: false,
-  showLanguages: false,
-  showIgnoredRepos: false,
+  hidePrereleases: false,
   ignoredRepos,
+  showIgnoredRepos: false,
+  showLanguages: false,
 })

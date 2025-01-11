@@ -55,9 +55,9 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={settings.showLanguages}
+          bind:checked={settings.hidePrereleases}
         />
-        Show Languages
+        Hide Prereleases
       </label>
     </div>
 
@@ -68,6 +68,16 @@
           bind:checked={settings.showIgnoredRepos}
         />
         Show Ignored Repositories
+      </label>
+    </div>
+
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          bind:checked={settings.showLanguages}
+        />
+        Show Languages
       </label>
     </div>
 

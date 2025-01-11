@@ -10,12 +10,24 @@
   }
 
   const { allReleases }: Props = $props()
+
+  function shouldDisplay(release: ReleaseObj): boolean {
+    if (release.isPrerelease && settings.hidePrereleases) {
+      return false
+    }
+
+    const isIgnored = settings.ignoredRepos.has(release.repo.name)
+    if (isIgnored && !settings.showIgnoredRepos) {
+      return false
+    }
+
+    return true
+  }
 </script>
 
 <div id="releases">
   {#each allReleases as release (release.id)}
-    {@const ignored = settings.ignoredRepos.has(release.repo.name)}
-    {#if settings.showIgnoredRepos || !ignored}
+    {#if shouldDisplay(release)}
       <Release {release} />
     {/if}
   {/each}
