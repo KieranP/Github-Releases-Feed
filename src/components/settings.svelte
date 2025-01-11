@@ -13,6 +13,14 @@
   function toggleSettings(): void {
     settingsOpen = !settingsOpen
   }
+
+  function saveBooleanSetting(
+    setting: KeysWithValsOfType<typeof settings, boolean>,
+    value: boolean,
+  ): void {
+    localStorage.setItem(setting, value.toString())
+    settings[setting] = value
+  }
 </script>
 
 <div id="settings_btn">
@@ -47,8 +55,7 @@
           type="checkbox"
           bind:checked={(): boolean => settings.expandDescriptions,
           (v: boolean): void => {
-            localStorage.setItem('expandDescriptions', v.toString())
-            settings.expandDescriptions = v
+            saveBooleanSetting('expandDescriptions', v)
           }}
         />
         Expand Descriptions
@@ -61,8 +68,7 @@
           type="checkbox"
           bind:checked={(): boolean => settings.hidePrereleases,
           (v: boolean): void => {
-            localStorage.setItem('hidePrereleases', v.toString())
-            settings.hidePrereleases = v
+            saveBooleanSetting('hidePrereleases', v)
           }}
         />
         Hide Prereleases
@@ -75,8 +81,7 @@
           type="checkbox"
           bind:checked={(): boolean => settings.showIgnoredRepos,
           (v: boolean): void => {
-            localStorage.setItem('showIgnoredRepos', v.toString())
-            settings.showIgnoredRepos = v
+            saveBooleanSetting('showIgnoredRepos', v)
           }}
         />
         Show Ignored Repositories
@@ -89,8 +94,7 @@
           type="checkbox"
           bind:checked={(): boolean => settings.showLanguages,
           (v: boolean): void => {
-            localStorage.setItem('showLanguages', v.toString())
-            settings.showLanguages = v
+            saveBooleanSetting('showLanguages', v)
           }}
         />
         Show Languages
