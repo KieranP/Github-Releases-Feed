@@ -45,7 +45,11 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={settings.expandDescriptions}
+          bind:checked={(): boolean => settings.expandDescriptions,
+          (v: boolean): void => {
+            localStorage.setItem('expandDescriptions', v.toString())
+            settings.expandDescriptions = v
+          }}
         />
         Expand Descriptions
       </label>
@@ -55,7 +59,11 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={settings.hidePrereleases}
+          bind:checked={(): boolean => settings.hidePrereleases,
+          (v: boolean): void => {
+            localStorage.setItem('hidePrereleases', v.toString())
+            settings.hidePrereleases = v
+          }}
         />
         Hide Prereleases
       </label>
@@ -65,7 +73,11 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={settings.showIgnoredRepos}
+          bind:checked={(): boolean => settings.showIgnoredRepos,
+          (v: boolean): void => {
+            localStorage.setItem('showIgnoredRepos', v.toString())
+            settings.showIgnoredRepos = v
+          }}
         />
         Show Ignored Repositories
       </label>
@@ -75,7 +87,11 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={settings.showLanguages}
+          bind:checked={(): boolean => settings.showLanguages,
+          (v: boolean): void => {
+            localStorage.setItem('showLanguages', v.toString())
+            settings.showLanguages = v
+          }}
         />
         Show Languages
       </label>
