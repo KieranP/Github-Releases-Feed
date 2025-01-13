@@ -2,6 +2,7 @@ import { SvelteSet } from 'svelte/reactivity'
 
 const expandDescriptions = localStorage.getItem('expandDescriptions') === 'true'
 const hidePrereleases = localStorage.getItem('hidePrereleases') === 'true'
+const hidePreviouslySeen = localStorage.getItem('hidePreviouslySeen') === 'true'
 const showIgnoredRepos = localStorage.getItem('showIgnoredRepos') === 'true'
 const showLanguages = localStorage.getItem('showLanguages') === 'true'
 
@@ -19,12 +20,14 @@ if (ignoredReposRaw !== null) {
 export const settings: {
   expandDescriptions: boolean
   hidePrereleases: boolean
+  hidePreviouslySeen: boolean
   ignoredRepos: Set<string>
   showIgnoredRepos: boolean
   showLanguages: boolean
 } = $state({
   expandDescriptions,
   hidePrereleases,
+  hidePreviouslySeen,
   ignoredRepos,
   showIgnoredRepos,
   showLanguages,

@@ -79,6 +79,19 @@
       <label>
         <input
           type="checkbox"
+          bind:checked={(): boolean => settings.hidePreviouslySeen,
+          (v: boolean): void => {
+            saveBooleanSetting('hidePreviouslySeen', v)
+          }}
+        />
+        Hide Previously Seen
+      </label>
+    </div>
+
+    <div>
+      <label>
+        <input
+          type="checkbox"
           bind:checked={(): boolean => settings.showIgnoredRepos,
           (v: boolean): void => {
             saveBooleanSetting('showIgnoredRepos', v)

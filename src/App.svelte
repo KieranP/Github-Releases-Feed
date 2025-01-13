@@ -134,7 +134,7 @@
   }
 
   function handleResponse(response: GithubReposResponse): void {
-    // If user logged out before handling response, stop processing
+    // If user logged out before receiving the response, abort
     if (!octokit) return
 
     const { pageInfo, totalCount, nodes } = response.viewer.starredRepositories
@@ -170,7 +170,15 @@
     } else if (pageInfo.hasNextPage) {
       void fetchReleases(pageInfo.endCursor)
     } else {
+      // All releases have finished loading
       loading = false
+
+      // Save the most recent release publishedAt time so we
+      // can show the "You're all caught up" line next time
+      localStorage.setItem(
+        'lastSeenPublishedAt',
+        allReleases[0]?.publishedAt ?? '',
+      )
     }
   }
 
