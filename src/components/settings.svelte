@@ -53,10 +53,12 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={(): boolean => settings.expandDescriptions,
-          (v: boolean): void => {
-            saveBooleanSetting('expandDescriptions', v)
-          }}
+          bind:checked={
+            (): boolean => settings.expandDescriptions,
+            (v: boolean): void => {
+              saveBooleanSetting('expandDescriptions', v)
+            }
+          }
         />
         Expand Descriptions
       </label>
@@ -66,10 +68,12 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={(): boolean => settings.hidePrereleases,
-          (v: boolean): void => {
-            saveBooleanSetting('hidePrereleases', v)
-          }}
+          bind:checked={
+            (): boolean => settings.hidePrereleases,
+            (v: boolean): void => {
+              saveBooleanSetting('hidePrereleases', v)
+            }
+          }
         />
         Hide Prereleases
       </label>
@@ -79,10 +83,12 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={(): boolean => settings.hidePreviouslySeen,
-          (v: boolean): void => {
-            saveBooleanSetting('hidePreviouslySeen', v)
-          }}
+          bind:checked={
+            (): boolean => settings.hidePreviouslySeen,
+            (v: boolean): void => {
+              saveBooleanSetting('hidePreviouslySeen', v)
+            }
+          }
         />
         Hide Previously Seen
       </label>
@@ -92,10 +98,12 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={(): boolean => settings.showIgnoredRepos,
-          (v: boolean): void => {
-            saveBooleanSetting('showIgnoredRepos', v)
-          }}
+          bind:checked={
+            (): boolean => settings.showIgnoredRepos,
+            (v: boolean): void => {
+              saveBooleanSetting('showIgnoredRepos', v)
+            }
+          }
         />
         Show Ignored Repositories
       </label>
@@ -105,10 +113,12 @@
       <label>
         <input
           type="checkbox"
-          bind:checked={(): boolean => settings.showLanguages,
-          (v: boolean): void => {
-            saveBooleanSetting('showLanguages', v)
-          }}
+          bind:checked={
+            (): boolean => settings.showLanguages,
+            (v: boolean): void => {
+              saveBooleanSetting('showLanguages', v)
+            }
+          }
         />
         Show Languages
       </label>
