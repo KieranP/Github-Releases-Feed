@@ -1,5 +1,7 @@
 import { SvelteSet } from 'svelte/reactivity'
 
+import type { ReleaseObj } from './github'
+
 const expandDescriptions = localStorage.getItem('expandDescriptions') === 'true'
 const hidePrereleases = localStorage.getItem('hidePrereleases') === 'true'
 const hidePreviouslySeen = localStorage.getItem('hidePreviouslySeen') === 'true'
@@ -32,3 +34,7 @@ export const settings: {
   showIgnoredRepos,
   showLanguages,
 })
+
+export const appState: {
+  firstReleaseBeforeLastSeen?: ReleaseObj | undefined
+} = $state({})

@@ -3,7 +3,7 @@
 
   import { settings } from '../state.svelte'
 
-  import type { ReleaseObj } from 'src/github'
+  import type { ReleaseObj } from '../github'
 
   interface Props {
     release: ReleaseObj

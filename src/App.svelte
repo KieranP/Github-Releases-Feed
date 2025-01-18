@@ -3,13 +3,19 @@
   // https://graphql-kit.com/graphql-voyager/
 
   import { onMount } from 'svelte'
+
   import { Octokit } from '@octokit/core'
   import { GraphqlResponseError } from '@octokit/graphql'
   import { RequestError } from '@octokit/request-error'
+
   import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
+
+  import { appState } from './state.svelte'
+
   import {
     reposQuery,
     descriptionQuery,
+    type GithubRepository,
     type GithubReposResponse,
     type GithubReleaseResponse,
     type ReleaseObj,
@@ -22,14 +28,25 @@
   import Toast from './components/toast.svelte'
 
   let githubToken = $state<string | null>(null)
+  let octokit = $derived.by(() => {
+    if (githubToken === null) return undefined
+    return new Octokit({ auth: githubToken })
+  })
+
   let allReleases = $state<ReleaseObj[]>([])
+
   let loading = $state(false)
-  let progress = $state(0.0)
+  let totalRepos = $state(0)
+  let reposProcessed = $state(0)
+  let progress = $derived.by(() => {
+    if (totalRepos === 0) return 0
+    return reposProcessed / totalRepos
+  })
+
+  let retries = $state(0)
   let toast = $state('')
 
-  let octokit: Octokit | undefined
-  let reposProcessed = 0
-  let retries = 0
+  const lastSeenPublishedAt = localStorage.getItem('lastSeenPublishedAt')
 
   const now = new Date()
   const startingDate = new Date(now)
@@ -63,23 +80,17 @@
     if (!inputValue) return
 
     saveGithubToken(inputValue)
-    initOktokit()
     void fetchReleases()
   }
 
   function logout(): void {
     clearGithubToken()
-    octokit = undefined
     allReleases = []
     loading = false
-    progress = 0.0
+    totalRepos = 0
     reposProcessed = 0
     retries = 0
-  }
-
-  function initOktokit(): void {
-    if (githubToken === null) return
-    octokit = new Octokit({ auth: githubToken })
+    toast = ''
   }
 
   async function initIndexedDB(): Promise<void> {
@@ -107,16 +118,43 @@
         },
       )
 
+      // eslint-disable-next-line
+      if (!octokit) return
+
       if (!response) {
         console.log('Debug: Graphql response is undefined')
         void fetchReleases(cursor)
         return
       }
 
+      const {
+        pageInfo,
+        totalCount,
+        nodes: repoNodes,
+      } = response.viewer.starredRepositories
+      totalRepos ||= totalCount
+
       // Reset retries since this request succeeded
       retries = 0
 
-      handleResponse(response)
+      repoNodes.forEach(handleRepoNode)
+
+      if (response.rateLimit.remaining <= 0) {
+        toast = 'Error: Reached Github Rate Limit'
+        loading = false
+      } else if (pageInfo.hasNextPage) {
+        void fetchReleases(pageInfo.endCursor)
+      } else {
+        // All releases have finished loading
+        loading = false
+
+        // Save the most recent release publishedAt time so we
+        // can show the "You're all caught up" line next time
+        localStorage.setItem(
+          'lastSeenPublishedAt',
+          allReleases[0]?.publishedAt ?? '',
+        )
+      }
     } catch (error: unknown) {
       console.log(error)
 
@@ -133,53 +171,50 @@
     }
   }
 
-  function handleResponse(response: GithubReposResponse): void {
-    // If user logged out before receiving the response, abort
-    if (!octokit) return
+  function handleRepoNode(repoNode: GithubRepository): void {
+    const { releases, ...repo } = repoNode
+    const releaseNodes = releases.nodes
 
-    const { pageInfo, totalCount, nodes } = response.viewer.starredRepositories
+    const releaseObjs = releaseNodes
+      .map((releaseNode) => {
+        const publishedAt = new Date(releaseNode.publishedAt)
+        if (publishedAt < startingDate) return null
+        return { repo, ...releaseNode } as ReleaseObj
+      })
+      .filter((v) => v !== null)
 
-    nodes.forEach((repoNode) => {
-      const { releases, ...repo } = repoNode
-      const releaseNodes = releases.nodes
-
-      const releaseObjs = releaseNodes
-        .map((releaseNode) => {
-          const publishedAt = new Date(releaseNode.publishedAt)
-          if (publishedAt < startingDate) return null
-          return { repo, ...releaseNode } as ReleaseObj
-        })
-        .filter((v) => v !== null)
-
+    if (releaseObjs.length) {
+      // TODO: Is there a faster way to insert new releases at the position
+      // they should be rather than concatting and resorting the whole array
+      // each time?
       allReleases.push(...releaseObjs)
       allReleases.sort((a, b) => {
-        const date1 = new Date(a.publishedAt).getTime()
-        const date2 = new Date(b.publishedAt).getTime()
-        return date2 - date1
+        return b.publishedAt.localeCompare(a.publishedAt)
       })
 
+      if (lastSeenPublishedAt !== null) {
+        releaseObjs.sort((a, b) => {
+          return b.publishedAt.localeCompare(a.publishedAt)
+        })
+
+        const firstReleaseBeforeLastSeen = releaseObjs.find(
+          (r: ReleaseObj) => r.publishedAt <= lastSeenPublishedAt,
+        )
+
+        if (
+          firstReleaseBeforeLastSeen &&
+          (!appState.firstReleaseBeforeLastSeen ||
+            firstReleaseBeforeLastSeen.publishedAt >
+              appState.firstReleaseBeforeLastSeen.publishedAt)
+        ) {
+          appState.firstReleaseBeforeLastSeen = firstReleaseBeforeLastSeen
+        }
+      }
+
       void fetchReleaseDescriptions(releaseObjs)
-
-      reposProcessed += 1
-      progress = reposProcessed / totalCount
-    })
-
-    if (response.rateLimit.remaining <= 0) {
-      toast = 'Error: Reached Github Rate Limit'
-      loading = false
-    } else if (pageInfo.hasNextPage) {
-      void fetchReleases(pageInfo.endCursor)
-    } else {
-      // All releases have finished loading
-      loading = false
-
-      // Save the most recent release publishedAt time so we
-      // can show the "You're all caught up" line next time
-      localStorage.setItem(
-        'lastSeenPublishedAt',
-        allReleases[0]?.publishedAt ?? '',
-      )
     }
+
+    reposProcessed += 1
   }
 
   async function fetchReleaseDescriptions(
@@ -242,7 +277,6 @@
   onMount(async () => {
     await initIndexedDB()
     fetchGithubToken()
-    initOktokit()
     void fetchReleases()
   })
 </script>

@@ -1,9 +1,9 @@
 <script lang="ts">
+  import { appState, settings } from '../state.svelte'
+
   import Release from './release.svelte'
 
-  import { settings } from '../state.svelte'
-
-  import type { ReleaseObj } from 'src/github'
+  import type { ReleaseObj } from '../github'
 
   interface Props {
     allReleases: ReleaseObj[]
@@ -13,7 +13,11 @@
 
   const lastSeenPublishedAt = localStorage.getItem('lastSeenPublishedAt')
 
-  function shouldDisplay(release: ReleaseObj): boolean {
+  function shouldDisplayCaughtUp(release: ReleaseObj): boolean {
+    return appState.firstReleaseBeforeLastSeen?.id === release.id
+  }
+
+  function shouldDisplayRelease(release: ReleaseObj): boolean {
     if (release.isPrerelease && settings.hidePrereleases) {
       return false
     }
@@ -37,11 +41,11 @@
 
 <div id="releases">
   {#each allReleases as release (release.id)}
-    {#if lastSeenPublishedAt === release.publishedAt}
+    {#if shouldDisplayCaughtUp(release)}
       <div id="caught_up">You're All Caught Up</div>
     {/if}
 
-    {#if shouldDisplay(release)}
+    {#if shouldDisplayRelease(release)}
       <Release {release} />
     {/if}
   {/each}
