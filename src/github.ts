@@ -1,5 +1,5 @@
-export const reposQuery = `
-  query($cursor: String) {
+export const reposQuery = /* GraphQL */ `
+  query ($cursor: String) {
     viewer {
       starredRepositories(first: 20, after: $cursor) {
         totalCount
@@ -9,6 +9,7 @@ export const reposQuery = `
           endCursor
           hasNextPage
         }
+
         nodes {
           description
           languages(first: 100) {
@@ -30,7 +31,10 @@ export const reposQuery = `
             id
             name
           }
-          releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+          releases(
+            first: 100
+            orderBy: { field: CREATED_AT, direction: DESC }
+          ) {
             nodes {
               id
               isDraft
@@ -58,8 +62,8 @@ export const reposQuery = `
   }
 `
 
-export const descriptionQuery = `
-  query($releaseIds: [ID!]!) {
+export const descriptionQuery = /* GraphQL */ `
+  query ($releaseIds: [ID!]!) {
     nodes(ids: $releaseIds) {
       ... on Release {
         id
