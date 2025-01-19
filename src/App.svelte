@@ -179,7 +179,11 @@
       .map((releaseNode) => {
         const publishedAt = new Date(releaseNode.publishedAt)
         if (publishedAt < startingDate) return null
-        return { repo, ...releaseNode } as ReleaseObj
+        const fullName = `${repo.owner.login}/${repo.name}`
+        return {
+          repo: { ...repo, fullName },
+          ...releaseNode,
+        } as ReleaseObj
       })
       .filter((v) => v !== null)
 

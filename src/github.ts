@@ -161,6 +161,6 @@ export interface GithubReleaseResponse {
 }
 
 export type ReleaseObj = GithubRelease & {
-  repo: Omit<GithubRepository, 'releases'>
+  repo: Omit<GithubRepository, 'releases'> & { fullName: string }
   descriptionHTML?: string
 }

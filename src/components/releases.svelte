@@ -30,7 +30,7 @@
       return false
     }
 
-    const isIgnored = settings.ignoredRepos.has(release.repo.name)
+    const isIgnored = settings.ignoredRepos.has(release.repo.fullName)
     if (isIgnored && !settings.showIgnoredRepos) {
       return false
     }

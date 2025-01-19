@@ -19,7 +19,7 @@
   const repo = $derived(release.repo)
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
-  const ignored = $derived(settings.ignoredRepos.has(repo.name))
+  const ignored = $derived(settings.ignoredRepos.has(repo.fullName))
 
   const starsFormatter = new Intl.NumberFormat('en', {
     notation: 'compact',
@@ -37,13 +37,13 @@
   }
 
   function ignoreRepo(): void {
-    settings.ignoredRepos.add(repo.name)
+    settings.ignoredRepos.add(repo.fullName)
     persistIgnoredRepos()
     toggleMenu()
   }
 
   function unignoreRepo(): void {
-    settings.ignoredRepos.delete(repo.name)
+    settings.ignoredRepos.delete(repo.fullName)
     persistIgnoredRepos()
     toggleMenu()
   }
@@ -80,7 +80,7 @@
           rel="noopener noreferrer"
           target="_blank"
         >
-          {owner.login}/{repo.name}
+          {repo.fullName}
         </a>
         released
 
