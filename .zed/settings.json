@@ -1,0 +1,64 @@
+{
+  // Input / Function
+  "format_on_save": "off",
+  "tab_size": 2,
+
+  // Extensions
+  "auto_install_extensions": {
+    "html": true,
+    "scss": true,
+    "svelte": true
+  },
+
+  // Language / LSP
+  "languages": {
+    "JavaScript": {
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.fixAll.eslint": true
+          }
+        },
+        {
+          "external": {
+            "command": "yarn prettier",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
+          }
+        }
+      ]
+    },
+    "Svelte": {
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.fixAll.eslint": true
+          }
+        },
+        {
+          "external": {
+            "command": "yarn prettier",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
+          }
+        }
+      ]
+    },
+    "TypeScript": {
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.fixAll.eslint": true
+          }
+        },
+        {
+          "external": {
+            "command": "yarn prettier",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
+          }
+        }
+      ]
+    }
+  }
+}
