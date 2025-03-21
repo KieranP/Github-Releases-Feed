@@ -50,7 +50,7 @@
 
   const now = new Date()
   const startingDate = new Date(now)
-  startingDate.setMonth(now.getMonth() - 3)
+  startingDate.setMonth(now.getMonth() - 1)
 
   let db: IDBPDatabase<GithubReleasesDBSchema> | undefined
   interface GithubReleasesDBSchema extends DBSchema {

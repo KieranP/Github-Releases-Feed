@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
+
   import { intlFormat, intlFormatDistance } from 'date-fns'
 
   import { settings } from '../state.svelte'
@@ -11,10 +13,17 @@
 
   const { release }: Props = $props()
 
+  let releaseDiv = $state<HTMLDivElement>()
+  let loadDescription = $state(false)
   let descriptionDiv = $state<HTMLDivElement>()
   let expandDescriptionDiv = $state<HTMLDivElement>()
   let oversized = $state(false)
   let menuOpen = $state(false)
+
+  let showDescription = $derived(
+    loadDescription &&
+      (release.descriptionHTML === undefined || release.descriptionHTML !== ''),
+  )
 
   const repo = $derived(release.repo)
   const owner = $derived(repo.owner)
@@ -55,6 +64,25 @@
     )
   }
 
+  onMount(() => {
+    if (!releaseDiv) return undefined
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !loadDescription) {
+          loadDescription = true
+          observer.disconnect()
+        }
+      })
+    })
+
+    observer.observe(releaseDiv)
+
+    return (): void => {
+      observer.disconnect()
+    }
+  })
+
   $effect(() => {
     if (release.descriptionHTML !== undefined && descriptionDiv) {
       const rect = descriptionDiv.getBoundingClientRect()
@@ -63,7 +91,10 @@
   })
 </script>
 
-<div class="release">
+<div
+  bind:this={releaseDiv}
+  class="release"
+>
   <div class="info">
     <div class="avatar">
       <img
@@ -192,7 +223,7 @@
     {/if}
   </div>
 
-  {#if release.descriptionHTML === undefined || release.descriptionHTML !== ''}
+  {#if showDescription}
     <div
       bind:this={descriptionDiv}
       class="description"

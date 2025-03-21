@@ -38,7 +38,7 @@
       <p>
         This service was created to resolve that issue. You provide a Github
         Personal Access Token which has read-only access your starred
-        repositories, and it will then fetch the last 3 months of releases for
+        repositories, and it will then fetch the last month of releases for
         those repositories, displaying them from newest to oldest. No fancy
         algorithms or predictions getting in the way; the way all activity feeds
         should be.
