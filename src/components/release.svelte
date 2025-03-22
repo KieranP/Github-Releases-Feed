@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-
   import { intlFormat, intlFormatDistance } from 'date-fns'
 
   import { settings } from '../state.svelte'
+  import { intersectionObserver } from '../helpers'
 
   import type { ReleaseObj } from '../github'
 
@@ -13,7 +12,6 @@
 
   const { release }: Props = $props()
 
-  let releaseDiv = $state<HTMLDivElement>()
   let loadDescription = $state(false)
   let descriptionDiv = $state<HTMLDivElement>()
   let expandDescriptionDiv = $state<HTMLDivElement>()
@@ -35,6 +33,25 @@
     compactDisplay: 'short',
     maximumSignificantDigits: 3,
   })
+
+  function onintersect({
+    detail: { isIntersecting, target },
+  }: CustomEvent<IntersectionObserverEntry>): void {
+    if (isIntersecting && !loadDescription) {
+      loadDescription = true
+      intersectionObserver.unobserve(target)
+    }
+  }
+
+  function observe(element: Element): { destroy: () => void } {
+    intersectionObserver.observe(element)
+
+    return {
+      destroy(): void {
+        intersectionObserver.unobserve(element)
+      },
+    }
+  }
 
   function expandDescription(): void {
     if (descriptionDiv) descriptionDiv.classList.remove('truncated')
@@ -64,25 +81,6 @@
     )
   }
 
-  onMount(() => {
-    if (!releaseDiv) return undefined
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !loadDescription) {
-          loadDescription = true
-          observer.disconnect()
-        }
-      })
-    })
-
-    observer.observe(releaseDiv)
-
-    return (): void => {
-      observer.disconnect()
-    }
-  })
-
   $effect(() => {
     if (release.descriptionHTML !== undefined && descriptionDiv) {
       const rect = descriptionDiv.getBoundingClientRect()
@@ -92,8 +90,9 @@
 </script>
 
 <div
-  bind:this={releaseDiv}
   class="release"
+  {onintersect}
+  use:observe
 >
   <div class="info">
     <div class="avatar">
