@@ -8,8 +8,7 @@
   import { GraphqlResponseError } from '@octokit/graphql'
   import { RequestError } from '@octokit/request-error'
 
-  import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-
+  import { db } from './db'
   import { appState } from './state.svelte'
 
   import {
@@ -52,14 +51,6 @@
   const startingDate = new Date(now)
   startingDate.setMonth(now.getMonth() - 1)
 
-  let db: IDBPDatabase<GithubReleasesDBSchema> | undefined
-  interface GithubReleasesDBSchema extends DBSchema {
-    descriptions: {
-      key: string
-      value: string
-    }
-  }
-
   function fetchGithubToken(): void {
     githubToken = localStorage.getItem('githubToken')
   }
@@ -91,18 +82,6 @@
     reposProcessed = 0
     retries = 0
     toast = ''
-  }
-
-  async function initIndexedDB(): Promise<void> {
-    try {
-      db = await openDB<GithubReleasesDBSchema>('github-releases', 1, {
-        upgrade(idbp) {
-          idbp.createObjectStore('descriptions')
-        },
-      })
-    } catch (error) {
-      console.log(error)
-    }
   }
 
   async function fetchReleases(cursor: string | null = null): Promise<void> {
@@ -230,12 +209,10 @@
 
     await Promise.all(
       releaseObjs.map(async (releaseObj) => {
-        const description = db
-          ? await db.get(
-              'descriptions',
-              `${releaseObj.id}-${releaseObj.updatedAt}`,
-            )
-          : undefined
+        const description = await db?.get(
+          'descriptions',
+          `${releaseObj.id}-${releaseObj.updatedAt}`,
+        )
 
         if (description === undefined) {
           uncachedReleaseIds.push(releaseObj.id)
@@ -278,8 +255,7 @@
     }
   }
 
-  onMount(async () => {
-    await initIndexedDB()
+  onMount(() => {
     fetchGithubToken()
     void fetchReleases()
   })

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { db } from '../db'
   import { settings } from '../state.svelte'
 
   interface Props {
@@ -124,8 +125,15 @@
       </label>
     </div>
 
-    {#if githubToken}
-      <div id="logout">
+    <div id="buttons">
+      <button
+        onclick={(): void => {
+          void db?.clear('descriptions')
+        }}
+        type="button">Clear Cache</button
+      >
+
+      {#if githubToken}
         <button
           onclick={(): void => {
             logout()
@@ -133,8 +141,8 @@
           }}
           type="button">Logout</button
         >
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 {/if}
 
@@ -170,7 +178,7 @@
     background-color: #fdfdfd;
     filter: drop-shadow(5px 5px 5px #ccc);
 
-    #logout {
+    #buttons {
       margin-top: 20px;
       text-align: center;
     }
