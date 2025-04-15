@@ -2,6 +2,8 @@
   // https://docs.github.com/en/graphql
   // https://graphql-kit.com/graphql-voyager/
 
+  import './global.scss'
+
   import { onMount } from 'svelte'
 
   import { Octokit } from '@octokit/core'
