@@ -6,6 +6,8 @@ const expandDescriptions = localStorage.getItem('expandDescriptions') === 'true'
 const hidePrereleases = localStorage.getItem('hidePrereleases') === 'true'
 const hidePreviouslySeen = localStorage.getItem('hidePreviouslySeen') === 'true'
 const showIgnoredRepos = localStorage.getItem('showIgnoredRepos') === 'true'
+const showIgnoredPrereleases =
+  localStorage.getItem('showIgnoredPrereleases') === 'true'
 const showLanguages = localStorage.getItem('showLanguages') === 'true'
 
 let ignoredRepos = new SvelteSet<string>()
@@ -19,12 +21,27 @@ if (ignoredReposRaw !== null) {
   }
 }
 
+let ignoredPrereleases = new SvelteSet<string>()
+const ignoredPrereleasesRaw = localStorage.getItem('ignoredPrereleases')
+if (ignoredPrereleasesRaw !== null) {
+  try {
+    const ignoredPrereleasesArray = JSON.parse(
+      ignoredPrereleasesRaw,
+    ) as string[]
+    ignoredPrereleases = new SvelteSet(ignoredPrereleasesArray)
+  } catch {
+    console.error('Parsing ignoredPrereleases failed')
+  }
+}
+
 export const settings: {
   expandDescriptions: boolean
   hidePrereleases: boolean
   hidePreviouslySeen: boolean
   ignoredRepos: Set<string>
   showIgnoredRepos: boolean
+  ignoredPrereleases: Set<string>
+  showIgnoredPrereleases: boolean
   showLanguages: boolean
 } = $state({
   expandDescriptions,
@@ -32,6 +49,8 @@ export const settings: {
   hidePreviouslySeen,
   ignoredRepos,
   showIgnoredRepos,
+  ignoredPrereleases,
+  showIgnoredPrereleases,
   showLanguages,
 })
 

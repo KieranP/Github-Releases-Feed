@@ -26,7 +26,10 @@
   const repo = $derived(release.repo)
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
-  const ignored = $derived(settings.ignoredRepos.has(repo.fullName))
+  const ignoredRepo = $derived(settings.ignoredRepos.has(repo.fullName))
+  const ignoredPrerelease = $derived(
+    settings.ignoredPrereleases.has(repo.fullName),
+  )
 
   const starsFormatter = new Intl.NumberFormat('en', {
     notation: 'compact',
@@ -78,6 +81,25 @@
     localStorage.setItem(
       'ignoredRepos',
       JSON.stringify([...settings.ignoredRepos]),
+    )
+  }
+
+  function ignorePrerelease(): void {
+    settings.ignoredPrereleases.add(repo.fullName)
+    persistIgnoredPrereleases()
+    toggleMenu()
+  }
+
+  function unignorePrerelease(): void {
+    settings.ignoredPrereleases.delete(repo.fullName)
+    persistIgnoredPrereleases()
+    toggleMenu()
+  }
+
+  function persistIgnoredPrereleases(): void {
+    localStorage.setItem(
+      'ignoredPrereleases',
+      JSON.stringify([...settings.ignoredPrereleases]),
     )
   }
 
@@ -164,11 +186,11 @@
 
     <div class="spacer"></div>
 
-    {#if ignored}
+    {#if ignoredRepo || (ignoredPrerelease && release.isPrerelease)}
       <div>
         <img
           class="ignored"
-          alt="Ignored Repository"
+          alt="Ignored Repository/Prerelease"
           src="./ignored.svg"
         />
       </div>
@@ -189,18 +211,34 @@
   {#if menuOpen}
     <div class="menu">
       <div>
-        {#if ignored}
+        {#if ignoredRepo}
           <button
             onclick={unignoreRepo}
-            type="button">Unignore this repository</button
+            type="button">Unignore all releases from this repo</button
           >
         {:else}
           <button
             onclick={ignoreRepo}
-            type="button">Ignore this repository</button
+            type="button">Ignore all releases from this repo</button
           >
         {/if}
       </div>
+
+      {#if !ignoredRepo}
+        <div>
+          {#if ignoredPrerelease}
+            <button
+              onclick={unignorePrerelease}
+              type="button">Unignore prereleases from this repo</button
+            >
+          {:else}
+            <button
+              onclick={ignorePrerelease}
+              type="button">Ignore prereleases from this repo</button
+            >
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
 

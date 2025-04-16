@@ -22,8 +22,8 @@
         },
         {
           "external": {
-            "command": "yarn prettier",
-            "arguments": ["--stdin-filepath", "{buffer_path}"]
+            "command": "yarn",
+            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }
       ]
@@ -38,8 +38,8 @@
         },
         {
           "external": {
-            "command": "yarn prettier",
-            "arguments": ["--stdin-filepath", "{buffer_path}"]
+            "command": "yarn",
+            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }
       ]
@@ -54,8 +54,8 @@
         },
         {
           "external": {
-            "command": "yarn prettier",
-            "arguments": ["--stdin-filepath", "{buffer_path}"]
+            "command": "yarn",
+            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }
       ]

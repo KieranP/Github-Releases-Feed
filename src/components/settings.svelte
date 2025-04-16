@@ -76,7 +76,7 @@
             }
           }
         />
-        Hide Prereleases
+        Hide All Prereleases
       </label>
     </div>
 
@@ -107,6 +107,21 @@
           }
         />
         Show Ignored Repositories
+      </label>
+    </div>
+
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          bind:checked={
+            (): boolean => settings.showIgnoredPrereleases,
+            (v: boolean): void => {
+              saveBooleanSetting('showIgnoredPrereleases', v)
+            }
+          }
+        />
+        Show Ignored Prereleases
       </label>
     </div>
 
