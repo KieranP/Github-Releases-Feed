@@ -51,6 +51,7 @@
     margin: 0;
     width: 100%;
     max-width: 1000px;
+    line-height: 0;
     background-color: #fafafa;
 
     span {

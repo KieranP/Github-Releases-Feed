@@ -196,6 +196,11 @@
     #buttons {
       margin-top: 20px;
       text-align: center;
+
+      button {
+        padding: 0 5px;
+        font-size: 14px;
+      }
     }
   }
 </style>
