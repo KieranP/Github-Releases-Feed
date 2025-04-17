@@ -76,6 +76,7 @@
 
   function logout(): void {
     clearGithubToken()
+    void db?.clear('descriptions')
     allReleases = []
     loading = false
     totalRepos = 0
