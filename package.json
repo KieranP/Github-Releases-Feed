@@ -27,7 +27,6 @@
     "lightningcss": "^1.29.3",
     "prettier": "^3.5.3",
     "prettier-plugin-svelte": "^3.3.3",
-    "sass-embedded": "^1.86.3",
     "svelte": "^5.28.1",
     "svelte-check": "^4.1.6",
     "svelte-eslint-parser": "^1.1.2",
