@@ -161,7 +161,7 @@
   </div>
 {/if}
 
-<style lang="scss">
+<style>
   #settings_btn {
     position: fixed;
     top: 20px;

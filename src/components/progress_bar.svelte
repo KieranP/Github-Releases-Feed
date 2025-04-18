@@ -30,7 +30,7 @@
   {/if}
 {/if}
 
-<style lang="scss">
+<style>
   #loading {
     position: absolute;
     top: 50%;

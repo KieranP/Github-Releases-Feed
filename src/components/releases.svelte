@@ -58,7 +58,7 @@
   {/each}
 </div>
 
-<style lang="scss">
+<style>
   #releases {
     display: flex;
     flex-direction: column;

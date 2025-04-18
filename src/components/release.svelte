@@ -305,7 +305,7 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style>
   .release {
     padding: 20px;
     border: 1px solid #ccc;
@@ -461,6 +461,7 @@
       padding: 16px;
       overflow-x: scroll;
       background-color: #f6f6f6;
+      font-size: 15px;
 
       &.truncated {
         position: relative;
@@ -483,8 +484,6 @@
       }
 
       :global {
-        font-size: 15px;
-
         :first-child {
           margin-top: 0;
         }

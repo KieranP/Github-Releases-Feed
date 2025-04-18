@@ -6,7 +6,6 @@
   // Extensions
   "auto_install_extensions": {
     "html": true,
-    "scss": true,
     "svelte": true
   },
 

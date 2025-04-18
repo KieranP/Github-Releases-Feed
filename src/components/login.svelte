@@ -111,7 +111,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   #login {
     position: absolute;
     top: 50%;

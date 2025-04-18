@@ -12,7 +12,7 @@
   </div>
 {/if}
 
-<style lang="scss">
+<style>
   #toast {
     position: fixed;
     bottom: 20px;

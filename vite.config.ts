@@ -5,7 +5,11 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 export default defineConfig({
   base: '',
   plugins: [svelte()],
+  css: {
+    transformer: 'lightningcss',
+  },
   build: {
-    target: "esnext"
+    cssMinify: 'lightningcss',
+    target: 'esnext',
   },
 })
