@@ -241,8 +241,6 @@
 
       attachReleaseDescription(releaseNode.id, releaseNode.descriptionHTML)
     })
-
-    return
   }
 
   function attachReleaseDescription(
