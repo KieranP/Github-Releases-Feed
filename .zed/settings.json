@@ -3,6 +3,15 @@
   "format_on_save": "off",
   "tab_size": 2,
 
+  // File Scan/Search
+  "file_scan_exclusions": [
+    ".git/",
+    ".DS_Store",
+    ".ruby-lsp/",
+    ".yarn/",
+    "dist/"
+  ],
+
   // Extensions
   "auto_install_extensions": {
     "html": true,
