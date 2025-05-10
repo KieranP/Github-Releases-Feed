@@ -12,4 +12,11 @@ export default defineConfig({
     cssMinify: 'lightningcss',
     target: 'esnext',
   },
+  server: {
+    headers: {
+      // So performance.now() reports in microseconds
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
+  },
 })

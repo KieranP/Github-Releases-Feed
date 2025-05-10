@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appState, settings } from '../state.svelte'
+  import { appState, lastSeenPublishedAt, settings } from '../state.svelte'
 
   import Release from './release.svelte'
 
@@ -10,8 +10,6 @@
   }
 
   const { allReleases }: Props = $props()
-
-  const lastSeenPublishedAt = localStorage.getItem('lastSeenPublishedAt')
 
   function shouldDisplayCaughtUp(release: ReleaseObj): boolean {
     return appState.firstReleaseBeforeLastSeen?.id === release.id
@@ -24,7 +22,6 @@
 
     if (
       settings.hidePreviouslySeen &&
-      lastSeenPublishedAt !== null &&
       release.publishedAt <= lastSeenPublishedAt
     ) {
       return false

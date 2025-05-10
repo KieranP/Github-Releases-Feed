@@ -57,3 +57,9 @@ export const settings: {
 export const appState: {
   firstReleaseBeforeLastSeen?: ReleaseObj | undefined
 } = $state({})
+
+const lastSeenPublishedAtString = localStorage.getItem('lastSeenPublishedAt')
+export const lastSeenPublishedAt: Date =
+  lastSeenPublishedAtString === null
+    ? new Date(0) // 1970-01-01
+    : new Date(lastSeenPublishedAtString)

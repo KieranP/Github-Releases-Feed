@@ -160,7 +160,8 @@ export interface GithubReleaseResponse {
   }
 }
 
-export type ReleaseObj = GithubRelease & {
+export type ReleaseObj = Omit<GithubRelease, 'publishedAt'> & {
   repo: Omit<GithubRepository, 'releases'> & { fullName: string }
+  publishedAt: Date
   descriptionHTML?: string
 }

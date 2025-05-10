@@ -9,7 +9,7 @@
   import { RequestError } from '@octokit/request-error'
 
   import { db } from './db'
-  import { appState } from './state.svelte'
+  import { appState, lastSeenPublishedAt } from './state.svelte'
 
   import {
     reposQuery,
@@ -32,6 +32,7 @@
     return new Octokit({ auth: githubToken })
   })
 
+  const allRepos: Record<string, ReleaseObj['repo']> = {}
   let allReleases = $state<ReleaseObj[]>([])
 
   let loading = $state(false)
@@ -44,8 +45,6 @@
 
   let retries = $state(0)
   let toast = $state('')
-
-  const lastSeenPublishedAt = localStorage.getItem('lastSeenPublishedAt')
 
   const now = new Date()
   const startingDate = new Date(now)
@@ -130,10 +129,12 @@
 
         // Save the most recent release publishedAt time so we
         // can show the "You're all caught up" line next time
-        localStorage.setItem(
-          'lastSeenPublishedAt',
-          allReleases[0]?.publishedAt ?? '',
-        )
+        if (allReleases[0]) {
+          localStorage.setItem(
+            'lastSeenPublishedAt',
+            allReleases[0].publishedAt.toISOString(),
+          )
+        }
       }
     } catch (error: unknown) {
       console.log(error)
@@ -155,50 +156,51 @@
     const { releases, ...repo } = repoNode
     const releaseNodes = releases.nodes
 
-    const releaseObjs = releaseNodes
-      .map((releaseNode) => {
+    const fullName = `${repo.owner.login}/${repo.name}`
+    allRepos[fullName] = { ...repo, fullName }
+
+    const releaseObjs = releaseNodes.reduce<ReleaseObj[]>(
+      (result, releaseNode) => {
         const publishedAt = new Date(releaseNode.publishedAt)
-        if (publishedAt < startingDate) return null
-        const fullName = `${repo.owner.login}/${repo.name}`
-        return {
-          repo: { ...repo, fullName },
-          ...releaseNode,
-        } as ReleaseObj
-      })
-      .filter((v) => v !== null)
+        if (publishedAt >= startingDate) {
+          result.push({
+            repo: allRepos[fullName],
+            ...releaseNode,
+            publishedAt,
+          } as ReleaseObj)
+        }
+
+        return result
+      },
+      [],
+    )
 
     if (releaseObjs.length) {
-      // TODO: Is there a faster way to insert new releases at the position
-      // they should be rather than concatting and resorting the whole array
-      // each time?
+      releaseObjs.sort(releaseSortFn)
       allReleases.push(...releaseObjs)
-      allReleases.sort((a, b) => {
-        return b.publishedAt.localeCompare(a.publishedAt)
-      })
+      allReleases.sort(releaseSortFn)
 
-      if (lastSeenPublishedAt !== null) {
-        releaseObjs.sort((a, b) => {
-          return b.publishedAt.localeCompare(a.publishedAt)
-        })
+      const firstReleaseBeforeLastSeen = releaseObjs.find(
+        (r: ReleaseObj) => r.publishedAt <= lastSeenPublishedAt,
+      )
 
-        const firstReleaseBeforeLastSeen = releaseObjs.find(
-          (r: ReleaseObj) => r.publishedAt <= lastSeenPublishedAt,
-        )
-
-        if (
-          firstReleaseBeforeLastSeen &&
-          (!appState.firstReleaseBeforeLastSeen ||
-            firstReleaseBeforeLastSeen.publishedAt >
-              appState.firstReleaseBeforeLastSeen.publishedAt)
-        ) {
-          appState.firstReleaseBeforeLastSeen = firstReleaseBeforeLastSeen
-        }
+      if (
+        firstReleaseBeforeLastSeen &&
+        (!appState.firstReleaseBeforeLastSeen ||
+          firstReleaseBeforeLastSeen.publishedAt >
+            appState.firstReleaseBeforeLastSeen.publishedAt)
+      ) {
+        appState.firstReleaseBeforeLastSeen = firstReleaseBeforeLastSeen
       }
 
       void fetchReleaseDescriptions(releaseObjs)
     }
 
     reposProcessed += 1
+  }
+
+  function releaseSortFn(a: ReleaseObj, b: ReleaseObj): number {
+    return b.publishedAt.getTime() - a.publishedAt.getTime()
   }
 
   async function fetchReleaseDescriptions(
