@@ -116,6 +116,7 @@ export default eslintTS.config(
       'no-use-before-define': 'off',
 
       // Enable TSLint Rules
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/class-methods-use-this': 'error',
       '@typescript-eslint/consistent-return': 'error',
       '@typescript-eslint/consistent-type-exports': 'error',
@@ -140,22 +141,8 @@ export default eslintTS.config(
       '@typescript-eslint/no-shadow': 'error',
       '@typescript-eslint/no-unnecessary-parameter-property-assignment':
         'error',
+      '@typescript-eslint/no-unnecessary-type-conversion': 'error',
       '@typescript-eslint/no-unnecessary-qualifier': 'error',
-      '@typescript-eslint/no-useless-empty-export': 'error',
-      '@typescript-eslint/prefer-enum-initializers': 'error',
-      '@typescript-eslint/promise-function-async': 'error',
-      '@typescript-eslint/require-array-sort-compare': 'error',
-      '@typescript-eslint/strict-boolean-expressions': 'error',
-      '@typescript-eslint/switch-exhaustiveness-check': [
-        'error',
-        {
-          considerDefaultExhaustiveForUnions: true,
-          requireDefaultForNonUnion: true,
-        },
-      ],
-
-      // Override TSLint Rules
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -168,10 +155,22 @@ export default eslintTS.config(
           ignoreRestSiblings: true,
         },
       ],
+      '@typescript-eslint/no-useless-empty-export': 'error',
+      '@typescript-eslint/prefer-enum-initializers': 'error',
+      '@typescript-eslint/promise-function-async': 'error',
+      '@typescript-eslint/require-array-sort-compare': 'error',
       '@typescript-eslint/restrict-template-expressions': [
         'error',
         {
           allowNumber: true,
+        },
+      ],
+      '@typescript-eslint/strict-boolean-expressions': 'error',
+      '@typescript-eslint/switch-exhaustiveness-check': [
+        'error',
+        {
+          considerDefaultExhaustiveForUnions: true,
+          requireDefaultForNonUnion: true,
         },
       ],
     },
