@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint 'src/**/*.{js,ts,svelte}'",
-    "format": "prettier --write 'index.html' 'src/**/*.{ts,svelte}'",
     "types": "yarn types:typescript; yarn types:svelte",
     "types:typescript": "tsc --noEmit",
-    "types:svelte": "svelte-check --output=human"
+    "types:svelte": "svelte-check --output=human",
+    "lint": "yarn lint:oxlint; yarn lint:eslint",
+    "lint:oxlint": "oxlint src/**/*.{js,ts,svelte}",
+    "lint:eslint": "eslint src/**/*.{js,ts,svelte}",
+    "format": "prettier --write index.html src/**/*.{ts,svelte}"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
@@ -21,18 +23,20 @@
     "date-fns": "^4.1.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-svelte": "^3.9.1",
+    "eslint-plugin-oxlint": "^1.1.0",
+    "eslint-plugin-svelte": "^3.9.2",
     "globals": "^16.2.0",
     "idb": "^8.0.3",
     "lightningcss": "^1.30.1",
+    "oxlint": "^1.1.0",
     "prettier": "^3.5.3",
     "prettier-plugin-svelte": "^3.4.0",
-    "svelte": "^5.33.17",
+    "svelte": "^5.34.1",
     "svelte-check": "^4.2.1",
     "svelte-eslint-parser": "^1.2.0",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1",
+    "typescript-eslint": "^8.34.0",
     "vite": "^6.3.5"
   }
 }

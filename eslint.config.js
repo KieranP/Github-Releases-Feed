@@ -3,6 +3,7 @@ import eslintTS from 'typescript-eslint'
 import eslintPrettier from 'eslint-config-prettier'
 import eslintSvelte from 'eslint-plugin-svelte'
 import svelteParser from 'svelte-eslint-parser'
+import oxlint from 'eslint-plugin-oxlint'
 import globals from 'globals'
 
 import svelteConfig from './svelte.config.js'
@@ -225,4 +226,10 @@ export default eslintTS.config(
       },
     },
   },
+
+  //
+  // Disable Oxlint Rules
+  //
+
+  ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
 )

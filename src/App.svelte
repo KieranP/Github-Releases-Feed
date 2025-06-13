@@ -175,7 +175,7 @@
       [],
     )
 
-    if (releaseObjs.length) {
+    if (releaseObjs.length > 0) {
       releaseObjs.sort(releaseSortFn)
       allReleases.push(...releaseObjs)
       allReleases.sort(releaseSortFn)

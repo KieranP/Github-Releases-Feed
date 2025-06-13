@@ -38,19 +38,19 @@ export const settings: {
   expandDescriptions: boolean
   hidePrereleases: boolean
   hidePreviouslySeen: boolean
-  ignoredRepos: Set<string>
-  showIgnoredRepos: boolean
   ignoredPrereleases: Set<string>
+  ignoredRepos: Set<string>
   showIgnoredPrereleases: boolean
+  showIgnoredRepos: boolean
   showLanguages: boolean
 } = $state({
   expandDescriptions,
   hidePrereleases,
   hidePreviouslySeen,
-  ignoredRepos,
-  showIgnoredRepos,
   ignoredPrereleases,
+  ignoredRepos,
   showIgnoredPrereleases,
+  showIgnoredRepos,
   showLanguages,
 })
 

@@ -32,9 +32,9 @@
   )
 
   const starsFormatter = new Intl.NumberFormat('en', {
-    notation: 'compact',
     compactDisplay: 'short',
     maximumSignificantDigits: 3,
+    notation: 'compact',
   })
 
   function onintersect({
