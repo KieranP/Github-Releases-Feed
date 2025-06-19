@@ -156,6 +156,7 @@
     "import/default": "error",
     "import/export": "error",
     // "import/exports-last": "error",
+    "import/extensions": "error",
     "import/first": "error",
     // "import/group-exports": "error",
     // "import/max-dependencies": "error",
@@ -366,7 +367,7 @@
   },
   "overrides": [
     {
-      "files": ["*.svelte"],
+      "files": ["*.svelte", "*.svelte.ts"],
       "globals": {
         "$derived": "readonly",
         "$effect": "readonly",
