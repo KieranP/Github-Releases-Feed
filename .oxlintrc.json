@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["/node_modules", "/dist"],
+  "ignorePatterns": ["/node_modules", "/dist", "/*.{js,ts}"],
   "plugins": ["eslint", "oxc", "typescript", "import", "promise", "unicorn"],
   "categories": {
     "correctness": "error",
@@ -8,6 +8,7 @@
     "perf": "error"
   },
   "rules": {
+    "eslint/arrow-body-style": "error",
     "eslint/array-callback-return": "error",
     "eslint/block-scoped-var": "error",
     // "eslint/curly": "error",
@@ -21,6 +22,7 @@
     "eslint/getter-return": "error",
     "eslint/grouped-accessor-pairs": "error",
     "eslint/guard-for-in": "error",
+    // "eslint/id-length": "error",
     // "eslint/init-declarations": "error",
     "eslint/max-classes-per-file": "error",
     "eslint/max-depth": "error",
@@ -179,6 +181,7 @@
     "import/no-self-import": "error",
     "import/no-unassigned-import": ["error", { "allow": ["*.css"] }],
     "import/no-webpack-loader-syntax": "error",
+    // "import/prefer-default-export": "error",
     // "import/unambiguous": "error",
     "oxc/approx-constant": "error",
     "oxc/bad-array-method-on-arguments": "error",

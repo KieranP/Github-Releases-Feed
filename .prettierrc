@@ -9,6 +9,7 @@
     }
   ],
   "plugins": [
+    "@prettier/plugin-oxc",
     "prettier-plugin-svelte"
   ],
   "printWidth": 80,

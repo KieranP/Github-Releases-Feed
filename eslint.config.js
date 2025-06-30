@@ -2,63 +2,34 @@ import eslint from '@eslint/js'
 import eslintTS from 'typescript-eslint'
 import eslintPrettier from 'eslint-config-prettier'
 import eslintSvelte from 'eslint-plugin-svelte'
-import svelteParser from 'svelte-eslint-parser'
+import svelteConfig from './svelte.config.js'
 import oxlint from 'eslint-plugin-oxlint'
 import globals from 'globals'
 
-import svelteConfig from './svelte.config.js'
+const svelteFiles = ['**/*.svelte', '**/*.svelte.{js,ts}']
+const tsAndSvelteFiles = ['**/*.{js,ts}', ...svelteFiles]
 
 export default eslintTS.config(
   {
-    ignores: ['**/.DS_Store', '**/.env.*', '**/node_modules/'],
-  },
-
-  // Enable Linting Rules
-  ...[
-    {
-      ...eslint.configs.recommended,
-      files: ['**/*.{js,ts,svelte}'],
+    extends: [
+      eslint.configs.recommended,
+      eslintTS.configs.strictTypeChecked,
+      eslintTS.configs.stylisticTypeChecked.at(-1),
+      eslintPrettier,
+    ],
+    files: tsAndSvelteFiles,
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        parser: eslintTS.parser,
+        extraFileExtensions: ['.svelte'],
+      },
+      globals: {
+        ...globals.browser,
+      },
     },
-
-    ...eslintTS.configs.strictTypeChecked.map((config) => ({
-      ...config,
-      files: ['**/*.{js,ts,svelte}'],
-    })),
-
-    ...eslintTS.configs.stylisticTypeChecked.map((config) => ({
-      ...config,
-      files: ['**/*.{js,ts,svelte}'],
-    })),
-
-    ...eslintSvelte.configs.base,
-
-    ...eslintSvelte.configs.recommended.map((config) => ({
-      ...config,
-      files: ['**/*.svelte'],
-    })),
-  ],
-
-  // Prettier Compatability
-  ...[
-    {
-      ...eslintPrettier,
-      files: ['**/*.{js,ts,svelte}'],
-    },
-
-    ...eslintSvelte.configs.prettier.map((config) => ({
-      ...config,
-      files: ['**/*.svelte'],
-    })),
-  ],
-
-  //
-  // Enabled/Disabled Rules
-  //
-
-  {
-    files: ['**/*.{js,ts,svelte}'],
     rules: {
-      // Enable ESLint Rules
+      // ESLint Rules
       'array-callback-return': 'error',
       'block-scoped-var': 'error',
       'default-case': 'error',
@@ -84,6 +55,8 @@ export default eslintTS.config(
       'no-self-compare': 'error',
       'no-template-curly-in-string': 'error',
       'no-throw-literal': 'error',
+      'no-unassigned-vars': 'error',
+      // 'no-undefined': 'error',
       'no-unmodified-loop-condition': 'error',
       'no-unneeded-ternary': 'error',
       'no-unreachable-loop': 'error',
@@ -116,7 +89,7 @@ export default eslintTS.config(
       'no-shadow': 'off',
       'no-use-before-define': 'off',
 
-      // Enable TSLint Rules
+      // TSLint Rules
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/class-methods-use-this': 'error',
       '@typescript-eslint/consistent-return': 'error',
@@ -142,8 +115,8 @@ export default eslintTS.config(
       '@typescript-eslint/no-shadow': 'error',
       '@typescript-eslint/no-unnecessary-parameter-property-assignment':
         'error',
-      '@typescript-eslint/no-unnecessary-type-conversion': 'error',
       '@typescript-eslint/no-unnecessary-qualifier': 'error',
+      '@typescript-eslint/no-unnecessary-type-conversion': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -156,8 +129,10 @@ export default eslintTS.config(
           ignoreRestSiblings: true,
         },
       ],
+      // '@typescript-eslint/no-use-before-define': 'error',
       '@typescript-eslint/no-useless-empty-export': 'error',
       '@typescript-eslint/prefer-enum-initializers': 'error',
+      // '@typescript-eslint/prefer-readonly-parameter-types': 'error',
       '@typescript-eslint/promise-function-async': 'error',
       '@typescript-eslint/require-array-sort-compare': 'error',
       '@typescript-eslint/restrict-template-expressions': [
@@ -178,7 +153,16 @@ export default eslintTS.config(
   },
 
   {
-    files: ['**/*.svelte'],
+    extends: [
+      eslintSvelte.configs.recommended,
+      eslintSvelte.configs.prettier.at(-1),
+    ],
+    files: svelteFiles,
+    languageOptions: {
+      parserOptions: {
+        svelteConfig,
+      },
+    },
     rules: {
       'prefer-const': 'off',
       'svelte/block-lang': [
@@ -199,37 +183,5 @@ export default eslintTS.config(
     },
   },
 
-  //
-  // Other Tweaks
-  //
-
-  {
-    files: ['**/*.{js,ts,svelte}'],
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        parser: eslintTS.parser,
-        extraFileExtensions: ['.svelte'],
-      },
-      globals: {
-        ...globals.browser,
-      },
-    },
-  },
-
-  {
-    files: ['**/*.svelte'],
-    languageOptions: {
-      parser: svelteParser,
-      parserOptions: {
-        svelteConfig,
-      },
-    },
-  },
-
-  //
-  // Disable Oxlint Rules
-  //
-
-  ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
+  oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
 )

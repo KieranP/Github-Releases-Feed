@@ -181,7 +181,7 @@
       allReleases.sort(releaseSortFn)
 
       const firstReleaseBeforeLastSeen = releaseObjs.find(
-        (r: ReleaseObj) => r.publishedAt <= lastSeenPublishedAt,
+        (r) => r.publishedAt <= lastSeenPublishedAt,
       )
 
       if (
