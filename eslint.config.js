@@ -183,5 +183,5 @@ export default eslintTS.config(
     },
   },
 
-  oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
+  ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
 )
