@@ -8,6 +8,8 @@
   import { GraphqlResponseError } from '@octokit/graphql'
   import { RequestError } from '@octokit/request-error'
 
+  import { SvelteDate } from 'svelte/reactivity'
+
   import { db } from './db'
   import { appState, lastSeenPublishedAt } from './state.svelte'
 
@@ -46,8 +48,8 @@
   let retries = $state(0)
   let toast = $state('')
 
-  const now = new Date()
-  const startingDate = new Date(now)
+  const now = new SvelteDate()
+  const startingDate = new SvelteDate(now)
   startingDate.setMonth(now.getMonth() - 1)
 
   function fetchGithubToken(): void {

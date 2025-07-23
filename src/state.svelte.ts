@@ -1,4 +1,4 @@
-import { SvelteSet } from 'svelte/reactivity'
+import { SvelteSet, SvelteDate } from 'svelte/reactivity'
 
 import type { ReleaseObj } from './github'
 
@@ -61,5 +61,5 @@ export const appState: {
 const lastSeenPublishedAtString = localStorage.getItem('lastSeenPublishedAt')
 export const lastSeenPublishedAt: Date =
   lastSeenPublishedAtString === null
-    ? new Date(0) // 1970-01-01
-    : new Date(lastSeenPublishedAtString)
+    ? new SvelteDate(0) // 1970-01-01
+    : new SvelteDate(lastSeenPublishedAtString)
