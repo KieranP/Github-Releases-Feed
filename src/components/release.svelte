@@ -103,7 +103,7 @@
     )
   }
 
-  $effect(() => {
+  $effect((): void => {
     if (release.descriptionHTML !== undefined && descriptionDiv) {
       const rect = descriptionDiv.getBoundingClientRect()
       oversized = rect.height > 150

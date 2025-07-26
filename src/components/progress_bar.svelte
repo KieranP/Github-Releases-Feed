@@ -8,7 +8,7 @@
 
   let progressSpan = $state<HTMLSpanElement>()
 
-  $effect(() => {
+  $effect((): void => {
     if (!progressSpan) return
 
     progressSpan.style.width = `${progress * 100}%`

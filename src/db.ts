@@ -7,10 +7,10 @@ interface GithubReleasesDBSchema extends DBSchema {
   }
 }
 
-let db: IDBPDatabase<GithubReleasesDBSchema> | undefined
+let db: IDBPDatabase<GithubReleasesDBSchema> | undefined = undefined
 try {
   db = await openDB<GithubReleasesDBSchema>('github-releases', 1, {
-    upgrade(idbp) {
+    upgrade(idbp): void {
       idbp.createObjectStore('descriptions')
     },
   })

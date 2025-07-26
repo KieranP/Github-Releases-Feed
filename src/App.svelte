@@ -29,7 +29,7 @@
   import Toast from './components/toast.svelte'
 
   let githubToken = $state<string | null>(null)
-  let octokit = $derived.by(() => {
+  let octokit = $derived.by((): Octokit | undefined => {
     if (githubToken === null) return undefined
     return new Octokit({ auth: githubToken })
   })
@@ -40,7 +40,7 @@
   let loading = $state(false)
   let totalRepos = $state(0)
   let reposProcessed = $state(0)
-  let progress = $derived.by(() => {
+  let progress = $derived.by((): number => {
     if (totalRepos === 0) return 0
     return reposProcessed / totalRepos
   })
@@ -162,7 +162,7 @@
     allRepos[fullName] = { ...repo, fullName }
 
     const releaseObjs = releaseNodes.reduce<ReleaseObj[]>(
-      (result, releaseNode) => {
+      (result, releaseNode): ReleaseObj[] => {
         const publishedAt = new Date(releaseNode.publishedAt)
         if (publishedAt >= startingDate) {
           result.push({
@@ -183,7 +183,7 @@
       allReleases.sort(releaseSortFn)
 
       const firstReleaseBeforeLastSeen = releaseObjs.find(
-        (r) => r.publishedAt <= lastSeenPublishedAt,
+        (r): boolean => r.publishedAt <= lastSeenPublishedAt,
       )
 
       if (
@@ -213,7 +213,7 @@
     const uncachedReleaseIds: string[] = []
 
     await Promise.all(
-      releaseObjs.map(async (releaseObj) => {
+      releaseObjs.map(async (releaseObj): Promise<void> => {
         const description = await db?.get(
           'descriptions',
           `${releaseObj.id}-${releaseObj.updatedAt}`,
@@ -236,7 +236,7 @@
 
     if (!response) return
 
-    response.nodes.forEach((releaseNode) => {
+    response.nodes.forEach((releaseNode): void => {
       void db?.put(
         'descriptions',
         releaseNode.descriptionHTML,
@@ -251,14 +251,16 @@
     releaseId: string,
     description: string,
   ): void {
-    const releaseObj = allReleases.find((release) => release.id === releaseId)
+    const releaseObj = allReleases.find(
+      (release): boolean => release.id === releaseId,
+    )
 
     if (releaseObj) {
       releaseObj.descriptionHTML = description
     }
   }
 
-  onMount(() => {
+  onMount((): void => {
     fetchGithubToken()
     void fetchReleases()
   })
