@@ -21,7 +21,6 @@
     "eslint/no-undefined": "off",
     "eslint/no-void": "off",
     "eslint/sort-imports": "off",
-    "eslint/yoda": "error", // oxlint bug
 
     "import/consistent-type-specifier-style": "off",
     "import/exports-last": "off",
