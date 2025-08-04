@@ -183,5 +183,8 @@ export default eslintTS.config(
     },
   },
 
-  ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
+  {
+    extends: oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
+    files: ['**/*.{js,ts}'],
+  },
 )
