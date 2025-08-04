@@ -1,10 +1,11 @@
 import eslint from '@eslint/js'
-import eslintTS from 'typescript-eslint'
 import eslintPrettier from 'eslint-config-prettier'
-import eslintSvelte from 'eslint-plugin-svelte'
-import svelteConfig from './svelte.config.js'
 import oxlint from 'eslint-plugin-oxlint'
+import eslintSvelte from 'eslint-plugin-svelte'
 import globals from 'globals'
+import eslintTS from 'typescript-eslint'
+
+import svelteConfig from './svelte.config.js'
 
 const svelteFiles = ['**/*.svelte', '**/*.svelte.{js,ts}']
 const tsAndSvelteFiles = ['**/*.{js,ts}', ...svelteFiles]

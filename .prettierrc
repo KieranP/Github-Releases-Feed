@@ -1,5 +1,21 @@
 {
   "arrowParens": "always",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "importOrder": [
+    "^svelte($|/)",
+    "<THIRD_PARTY_MODULES>",
+    "^~/",
+    "^[./]",
+    "<THIRD_PARTY_TS_TYPES>",
+    "<TS_TYPES>"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderCaseInsensitive": true,
+  "importOrderSideEffects": false,
+  "objectWrap": "preserve",
   "overrides": [
     {
       "files": "*.svelte",
@@ -9,8 +25,8 @@
     }
   ],
   "plugins": [
-    "@prettier/plugin-oxc",
-    "prettier-plugin-svelte"
+    "prettier-plugin-svelte",
+    "@trivago/prettier-plugin-sort-imports"
   ],
   "printWidth": 80,
   "semi": false,

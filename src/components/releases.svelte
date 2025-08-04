@@ -1,6 +1,5 @@
 <script lang="ts">
   import { appState, lastSeenPublishedAt, settings } from '../state.svelte'
-
   import Release from './release.svelte'
 
   import type { ReleaseObj } from '../github'

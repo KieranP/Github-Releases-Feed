@@ -1,32 +1,28 @@
 <script lang="ts">
   // https://docs.github.com/en/graphql
   // https://graphql-kit.com/graphql-voyager/
-
   import { onMount } from 'svelte'
+  import { SvelteDate } from 'svelte/reactivity'
 
   import { Octokit } from '@octokit/core'
   import { GraphqlResponseError } from '@octokit/graphql'
   import { RequestError } from '@octokit/request-error'
 
-  import { SvelteDate } from 'svelte/reactivity'
-
-  import { db } from './db'
-  import { appState, lastSeenPublishedAt } from './state.svelte'
-
-  import {
-    reposQuery,
-    descriptionQuery,
-    type GithubRepository,
-    type GithubReposResponse,
-    type GithubReleaseResponse,
-    type ReleaseObj,
-  } from './github'
-
   import Login from './components/login.svelte'
-  import Settings from './components/settings.svelte'
   import ProgressBar from './components/progress_bar.svelte'
   import Releases from './components/releases.svelte'
+  import Settings from './components/settings.svelte'
   import Toast from './components/toast.svelte'
+  import { db } from './db'
+  import {
+    descriptionQuery,
+    type GithubReleaseResponse,
+    type GithubRepository,
+    type GithubReposResponse,
+    type ReleaseObj,
+    reposQuery,
+  } from './github'
+  import { appState, lastSeenPublishedAt } from './state.svelte'
 
   let githubToken = $state<string | null>(null)
   let octokit = $derived.by((): Octokit | undefined => {

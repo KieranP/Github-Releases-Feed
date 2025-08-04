@@ -1,4 +1,4 @@
-import { SvelteSet, SvelteDate } from 'svelte/reactivity'
+import { SvelteDate, SvelteSet } from 'svelte/reactivity'
 
 import type { ReleaseObj } from './github'
 

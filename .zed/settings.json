@@ -19,6 +19,10 @@
   },
 
   // Language / LSP
+  "file_types": {
+    "JSON": [".prettierrc"],
+    "JSONC": [".oxlintrc.json"]
+  },
   "languages": {
     "JavaScript": {
       "format_on_save": "on",

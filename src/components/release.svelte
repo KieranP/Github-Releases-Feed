@@ -1,8 +1,8 @@
 <script lang="ts">
   import { intlFormat, intlFormatDistance } from 'date-fns'
 
-  import { settings } from '../state.svelte'
   import { intersectionObserver } from '../helpers'
+  import { settings } from '../state.svelte'
 
   import type { ReleaseObj } from '../github'
 
