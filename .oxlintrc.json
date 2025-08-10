@@ -27,7 +27,7 @@
     "import/group-exports": "off",
     "import/max-dependencies": "off",
     "import/no-mutable-exports": "off",
-    "import/no-unassigned-import": ["error", { "allow": ["*.css"] }],
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
     "import/prefer-default-export": "off",
     "import/unambiguous": "off",
 
@@ -46,7 +46,7 @@
   },
   "overrides": [
     {
-      "files": ["*.svelte", "*.svelte.ts"],
+      "files": ["**/*.svelte", "**/*.svelte.ts"],
       "globals": {
         "$derived": "readonly",
         "$effect": "readonly",
