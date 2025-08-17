@@ -17,10 +17,12 @@
     "eslint/id-length": "off",
     "eslint/no-console": "off",
     "eslint/no-magic-numbers": "off",
+    "eslint/no-restricted-imports": ["error", { "patterns": ["~/*", "@/*"] }],
     "eslint/no-ternary": "off",
     "eslint/no-undefined": "off",
     "eslint/no-void": "off",
     "eslint/sort-imports": "off",
+    "eslint/sort-keys": "off",
 
     "import/consistent-type-specifier-style": "off",
     "import/exports-last": "off",
@@ -36,6 +38,7 @@
     "oxc/no-rest-spread-properties": "off",
 
     "typescript/array-type": ["error", { "default": "array-simple" }],
+    "typescript/no-unsafe-type-assertion": "off",
 
     "unicorn/filename-case": "off",
     "unicorn/no-abusive-eslint-disable": "off",
@@ -49,9 +52,27 @@
       "files": ["**/*.svelte", "**/*.svelte.ts"],
       "globals": {
         "$derived": "readonly",
-        "$effect": "readonly",
-        "$props": "readonly",
         "$state": "readonly"
+      }
+    },
+    {
+      "files": ["**/*.svelte"],
+      "globals": {
+        "$effect": "readonly",
+        "$props": "readonly"
+      },
+      "rules": {
+        // OxLint doesn't evaluate the HTML portion of Svelte files (yet).
+        // As a result, a couple of linting rules won't work.
+
+        // Variables defined in the TS portion, but set (using bind:this) in
+        // the HTML portion will seen as unassigned
+        "eslint/no-unassigned-vars": "off",
+
+        // When an imported component is used as a type specifier in the TS
+        // portion, OxLint throws the following error:
+        // "All imports in the declaration are only used as types. Use `import type`."
+        "typescript/consistent-type-imports": "off"
       }
     }
   ],

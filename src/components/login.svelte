@@ -1,9 +1,9 @@
 <script lang="ts">
   interface Props {
-    login: (inputValue: string) => void
+    onlogin: (inputValue: string) => void
   }
 
-  const { login }: Props = $props()
+  const { onlogin }: Props = $props()
 
   let inputValue = $state('')
 </script>
@@ -19,7 +19,7 @@
     <button
       disabled={!inputValue}
       onclick={(): void => {
-        login(inputValue)
+        onlogin(inputValue)
       }}
       type="button">Load</button
     >

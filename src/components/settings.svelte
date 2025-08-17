@@ -4,10 +4,10 @@
 
   interface Props {
     githubToken: string | null
-    logout: () => void
+    onlogout: () => void
   }
 
-  let { logout, githubToken }: Props = $props()
+  let { onlogout, githubToken }: Props = $props()
 
   let settingsOpen = $state(false)
 
@@ -151,7 +151,7 @@
       {#if githubToken}
         <button
           onclick={(): void => {
-            logout()
+            onlogout()
             toggleSettings()
           }}
           type="button">Logout</button
