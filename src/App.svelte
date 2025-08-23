@@ -64,14 +64,14 @@
     githubToken = null
   }
 
-  function login(inputValue: string): void {
+  function onlogin(inputValue: string): void {
     if (!inputValue) return
 
     saveGithubToken(inputValue)
     void fetchReleases()
   }
 
-  function logout(): void {
+  function onlogout(): void {
     clearGithubToken()
     void db?.clear('descriptions')
     allReleases = []
@@ -264,7 +264,7 @@
 
 <Settings
   {githubToken}
-  {logout}
+  {onlogout}
 />
 
 {#if githubToken}
@@ -275,7 +275,7 @@
 
   <Releases {allReleases} />
 {:else}
-  <Login {login} />
+  <Login {onlogin} />
 {/if}
 
 <Toast {toast} />
