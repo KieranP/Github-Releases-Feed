@@ -15,6 +15,7 @@
     "eslint/curly": "off",
     "eslint/func-style": ["error", "declaration"],
     "eslint/id-length": "off",
+    "eslint/max-lines-per-function": "off",
     "eslint/no-console": "off",
     "eslint/no-magic-numbers": "off",
     "eslint/no-restricted-imports": ["error", { "patterns": ["~/*", "@/*"] }],
@@ -24,16 +25,16 @@
     "eslint/sort-imports": "off",
     "eslint/sort-keys": "off",
 
-    "import/consistent-type-specifier-style": "off",
+    "import/consistent-type-specifier-style": "off", // Conflicts with eslint/no-duplicate-imports
     "import/exports-last": "off",
     "import/group-exports": "off",
     "import/max-dependencies": "off",
     "import/no-mutable-exports": "off",
     "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
-    "import/prefer-default-export": "off",
+    "import/prefer-default-export": "off", // Conflicts with import/no-default-export
     "import/unambiguous": "off",
 
-    "oxc/no-async-await": "off",
+    "oxc/no-async-await": "off", // Conflicts with eslint/require-await
     "oxc/no-optional-chaining": "off",
     "oxc/no-rest-spread-properties": "off",
 
