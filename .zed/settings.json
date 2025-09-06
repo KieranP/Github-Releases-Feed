@@ -8,7 +8,6 @@
     ".git/",
     ".DS_Store",
     ".ruby-lsp/",
-    ".yarn/",
     "dist/"
   ],
 
@@ -34,7 +33,7 @@
         },
         {
           "external": {
-            "command": "yarn",
+            "command": "pnpm",
             "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }
@@ -50,7 +49,7 @@
         },
         {
           "external": {
-            "command": "yarn",
+            "command": "pnpm",
             "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }
@@ -66,7 +65,7 @@
         },
         {
           "external": {
-            "command": "yarn",
+            "command": "pnpm",
             "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
           }
         }

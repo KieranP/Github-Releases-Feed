@@ -2,10 +2,10 @@
 
 ## Development
 
-* `yarn install`
-* `yarn dev --open`
+* `pnpm install`
+* `pnpm dev --open`
 
 ## Build
 
-* `yarn install`
-* `yarn build`
+* `pnpm install`
+* `pnpm build`

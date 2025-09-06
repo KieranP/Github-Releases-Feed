@@ -10,13 +10,13 @@ It uses the Github GraphQL API to fetch releases for repositories that the user 
 - Node.js 22+
 
 ## Setup & Development
-- Install dependencies with `yarn install`
-- Run development server with `yarn dev`
-- Build for production with `yarn build`
-- Check TypeScript types with `yarn types:typescript`
-- Check Svelte types with `yarn types:svelte`
-- Lint code using ESLint with `yarn lint`
-- Format code using Prettier with `yarn format`
+- Install dependencies with `pnpm install`
+- Run development server with `pnpm dev`
+- Build for production with `pnpm build`
+- Check TypeScript types with `pnpm types:typescript`
+- Check Svelte types with `pnpm types:svelte`
+- Lint code using ESLint with `pnpm lint`
+- Format code using Prettier with `pnpm format`
 
 ## Project Structure
 - `src/` - Where all source code lives
