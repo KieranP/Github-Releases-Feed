@@ -98,12 +98,12 @@
       <summary>How do I generate a Github Personal Access Token?</summary>
       <p>
         Start by creating a <a
-          href="https://github.com/settings/personal-access-tokens/new"
+          href="https://github.com/settings/personal-access-tokens/new?name=Github+Releases+Feed&expires_in=none&starring=read"
           rel="noopener noreferrer"
           target="_blank">Fine-grained Personal Access Token</a
-        >. Set whatever value you want for the token name and expiration. Under
-        "Permissions > Account permissions > Starring", set that permission to
-        "Access: Read-only". Leave all other settings as their default. Click
+        >. Replace whatever value you want for the token name and expiration.
+        Under "Permissions > Account > Starring", ensure that permission is set
+        to "Access: Read-only". Leave all other settings as their default. Click
         "Generate token". Then copy the resulting token into the box above and
         click "Load".
       </p>
