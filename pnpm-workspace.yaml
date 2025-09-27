@@ -1,3 +1,4 @@
+savePrefix: ''
+shellEmulator: true
 onlyBuiltDependencies:
   - esbuild
-shellEmulator: true
