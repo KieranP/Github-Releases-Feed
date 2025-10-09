@@ -114,7 +114,9 @@
       // Reset retries since this request succeeded
       retries = 0
 
-      repoNodes.forEach(handleRepoNode)
+      repoNodes.forEach((node) => {
+        handleRepoNode(node)
+      })
 
       if (response.rateLimit.remaining <= 0) {
         toast = 'Error: Reached Github Rate Limit'
