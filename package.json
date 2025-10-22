@@ -12,7 +12,8 @@
     "lint": "pnpm lint:oxlint; pnpm lint:eslint",
     "lint:oxlint": "oxlint --type-aware src/**/*.{js,ts,svelte}",
     "lint:eslint": "eslint --concurrency=auto src/**/*.{js,ts,svelte}",
-    "format": "prettier --write index.html src/**/*.{js,ts,svelte}"
+    "format": "prettier --write index.html src/**/*.{js,ts,svelte}",
+    "format:oxfmt": "oxfmt src/**/*.{js,ts}"
   },
   "devDependencies": {
     "@eslint/js": "9.38.0",
@@ -30,6 +31,7 @@
     "globals": "16.4.0",
     "idb": "8.0.3",
     "lightningcss": "1.30.2",
+    "oxfmt": "0.8.0",
     "oxlint": "1.24.0",
     "oxlint-tsgolint": "0.2.1",
     "prettier": "3.6.2",
