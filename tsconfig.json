@@ -1,20 +1,14 @@
 {
   // See https://www.typescriptlang.org/tsconfig
   "extends": "@tsconfig/svelte/tsconfig.json",
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.svelte",
-  ],
+  "include": ["src/**/*.ts", "src/**/*.svelte"],
   "compilerOptions": {
     // Modules
     "baseUrl": "./",
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": [
-      "vite/client",
-      "svelte"
-    ],
+    "types": ["vite/client", "svelte"],
 
     // Emit
     "sourceMap": true,

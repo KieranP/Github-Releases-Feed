@@ -2,10 +2,10 @@
 
 ## Development
 
-* `pnpm install`
-* `pnpm dev --open`
+- `pnpm install`
+- `pnpm dev --open`
 
 ## Build
 
-* `pnpm install`
-* `pnpm build`
+- `pnpm install`
+- `pnpm build`

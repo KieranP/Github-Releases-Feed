@@ -1,6 +1,6 @@
 {
   // Editor
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.insertSpaces": true,
   "editor.renderWhitespace": "trailing",
   "editor.tabSize": 2,
@@ -21,20 +21,14 @@
   "search.useIgnoreFiles": true,
 
   // Extensions
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "svelte"
-  ],
+  "eslint.validate": ["javascript", "typescript", "svelte"],
   "svelte.enable-ts-plugin": true,
 
   // File Specific
   "[svelte]": {
-    "editor.defaultFormatter": "svelte.svelte-vscode",
-    "editor.formatOnSave": true
+    "editor.defaultFormatter": "svelte.svelte-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

@@ -1,14 +1,10 @@
 {
   // Input / Function
-  "format_on_save": "off",
+  "format_on_save": "on",
   "tab_size": 2,
 
   // File Scan/Search
-  "file_scan_exclusions": [
-    ".git/",
-    ".DS_Store",
-    "dist/"
-  ],
+  "file_scan_exclusions": [".git/", ".DS_Store", "dist/"],
 
   // Extensions
   "auto_install_extensions": {
@@ -23,7 +19,6 @@
   },
   "languages": {
     "JavaScript": {
-      "format_on_save": "on",
       "formatter": [
         {
           "code_action": "source.fixAll.eslint"
@@ -37,7 +32,6 @@
       ]
     },
     "Svelte": {
-      "format_on_save": "on",
       "formatter": [
         {
           "code_action": "source.fixAll.eslint"
@@ -51,7 +45,6 @@
       ]
     },
     "TypeScript": {
-      "format_on_save": "on",
       "formatter": [
         {
           "code_action": "source.fixAll.eslint"
