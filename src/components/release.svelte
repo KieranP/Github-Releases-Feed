@@ -1,6 +1,9 @@
 <script lang="ts">
   import { intlFormat, intlFormatDistance } from 'date-fns'
 
+  import ignoredSvg from '../assets/ignored.svg?raw'
+  import loadingSvg from '../assets/loading.svg?raw'
+  import threeDotsSvg from '../assets/three-dots.svg?raw'
   import { intersectionObserver } from '../helpers'
   import { settings } from '../state.svelte'
 
@@ -187,12 +190,9 @@
     <div class="spacer"></div>
 
     {#if ignoredRepo || (ignoredPrerelease && release.isPrerelease)}
-      <div>
-        <img
-          class="ignored"
-          alt="Ignored Repository/Prerelease"
-          src="./ignored.svg"
-        />
+      <div class="ignored">
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+        {@html ignoredSvg}
       </div>
     {/if}
 
@@ -200,44 +200,39 @@
       <button
         onclick={toggleMenu}
         type="button"
-        ><img
-          alt="Release Options"
-          src="./three-dots.svg"
-        /></button
       >
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+        {@html threeDotsSvg}
+      </button>
     </div>
   </div>
 
   {#if menuOpen}
     <div class="menu">
-      <div>
-        {#if ignoredRepo}
+      {#if ignoredRepo}
+        <button
+          onclick={unignoreRepo}
+          type="button">Unignore all releases from this repo</button
+        >
+      {:else}
+        <button
+          onclick={ignoreRepo}
+          type="button">Ignore all releases from this repo</button
+        >
+      {/if}
+
+      {#if !ignoredRepo}
+        {#if ignoredPrerelease}
           <button
-            onclick={unignoreRepo}
-            type="button">Unignore all releases from this repo</button
+            onclick={unignorePrerelease}
+            type="button">Unignore prereleases from this repo</button
           >
         {:else}
           <button
-            onclick={ignoreRepo}
-            type="button">Ignore all releases from this repo</button
+            onclick={ignorePrerelease}
+            type="button">Ignore prereleases from this repo</button
           >
         {/if}
-      </div>
-
-      {#if !ignoredRepo}
-        <div>
-          {#if ignoredPrerelease}
-            <button
-              onclick={unignorePrerelease}
-              type="button">Unignore prereleases from this repo</button
-            >
-          {:else}
-            <button
-              onclick={ignorePrerelease}
-              type="button">Ignore prereleases from this repo</button
-            >
-          {/if}
-        </div>
       {/if}
     </div>
   {/if}
@@ -270,10 +265,8 @@
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html release.descriptionHTML}
       {:else}
-        <img
-          alt="Loading..."
-          src="./loading.svg"
-        />
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+        {@html loadingSvg}
       {/if}
     </div>
 
@@ -310,17 +303,12 @@
     position: relative;
     padding: 20px;
 
-    a {
-      color: #333;
-      text-underline-offset: 2px;
-    }
-
     .pill {
       display: inline-block;
       padding: 4px 10px;
-      border-radius: 6px;
-      background-color: #333;
-      color: #fff;
+      border-radius: var(--box-border-radius);
+      background-color: var(--pill-background-color-primary);
+      color: var(--pill-font-color);
       line-height: 13px;
       font-size: 13px;
     }
@@ -333,7 +321,7 @@
         img {
           width: 40px;
           height: 40px;
-          border-radius: 6px;
+          border-radius: var(--box-border-radius);
         }
       }
 
@@ -348,12 +336,10 @@
           left: 0px;
           width: 350px;
           padding: 20px;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          background-color: #fdfdfd;
-          box-shadow:
-            0px 1px 1px 0px #1f23280f,
-            0px 1px 3px 0px #1f23280f;
+          border: 1px solid var(--box-border-color);
+          border-radius: var(--box-border-radius);
+          background-color: var(--box-background-color);
+          box-shadow: var(--box-shadow);
           line-height: 20px;
           font-size: 14px;
 
@@ -388,20 +374,23 @@
       }
 
       .ignored {
-        width: 20px;
-        height: 20px;
+        :global {
+          svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--svg-fill-color);
+          }
+        }
       }
 
       .options {
         button {
-          background-color: transparent;
-          border: none;
-          outline: none;
-          cursor: pointer;
-
-          img {
-            width: 20px;
-            height: 20px;
+          :global {
+            svg {
+              width: 20px;
+              height: 20px;
+              fill: var(--svg-fill-color);
+            }
           }
         }
       }
@@ -413,25 +402,29 @@
       right: 20px;
       z-index: 100;
       width: 300px;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background-color: #fdfdfd;
-      box-shadow:
-        0px 1px 1px 0px #1f23280f,
-        0px 1px 3px 0px #1f23280f;
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--box-border-radius);
+      background-color: var(--box-background-color);
+      box-shadow: var(--box-shadow);
 
       button {
         display: block;
         width: 100%;
-        padding: 10px 20px;
+        padding: 12px 20px;
         text-align: left;
-        background-color: transparent;
-        border: 0;
-        cursor: pointer;
 
         &:hover {
-          background-color: #f6f6f6;
+          background-color: var(--box-hover-color);
+        }
+
+        &:first-of-type {
+          border-top-left-radius: var(--box-border-radius);
+          border-top-right-radius: var(--box-border-radius);
+        }
+
+        &:last-of-type {
+          border-bottom-left-radius: var(--box-border-radius);
+          border-bottom-right-radius: var(--box-border-radius);
         }
       }
     }
@@ -444,7 +437,7 @@
       font-weight: bold;
 
       a:visited {
-        color: #570987;
+        color: var(--link-color-visited);
       }
 
       .status {
@@ -459,27 +452,14 @@
       margin-block: 16px;
       padding: 16px;
       overflow-x: scroll;
-      background-color: #f6f8fa;
+      background-color: var(--release-description-background-color);
       font-size: 15px;
 
       &.truncated {
         position: relative;
         max-height: 150px;
         overflow: hidden;
-
-        &:after {
-          content: '';
-          position: absolute;
-          left: 0px;
-          right: 0px;
-          height: 75%;
-          bottom: 0px;
-          background: linear-gradient(
-            180deg,
-            rgba(139, 167, 32, 0) 0%,
-            rgba(255, 255, 255, 1) 100%
-          );
-        }
+        mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
       }
 
       :global {
@@ -494,7 +474,7 @@
         h1 {
           margin-block: 24px 12px;
           padding-bottom: 12px;
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid var(--box-border-color);
           line-height: 20px;
           font-size: 20px;
         }
@@ -502,7 +482,7 @@
         h2 {
           margin-block: 24px 12px;
           padding-bottom: 12px;
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid var(--box-border-color);
           line-height: 18px;
           font-size: 18px;
         }
@@ -546,8 +526,7 @@
         }
 
         a {
-          color: #333 !important;
-          text-underline-offset: 2px;
+          color: var(--link-color) !important;
         }
 
         hr {
@@ -555,18 +534,18 @@
           height: 2px;
           outline: 0;
           border: 0;
-          background-color: #ccc;
+          background-color: var(--box-border-color);
         }
 
         pre {
           padding: 16px;
           overflow: scroll;
-          background-color: #818b981f;
+          background-color: var(--release-description-pre-background-color);
         }
 
         code {
           padding: 2px 4px;
-          background-color: #818b981f;
+          background-color: var(--release-description-code-background-color);
         }
 
         table {
@@ -575,7 +554,7 @@
           th,
           td {
             padding: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--box-border-color);
           }
         }
 
@@ -609,8 +588,6 @@
       margin: 20px 0;
 
       button {
-        border: none;
-        background-color: transparent;
         font-size: 15px;
         font-weight: bold;
         text-decoration: underline;
@@ -624,7 +601,7 @@
         font-size: 11px;
 
         &.secondary {
-          background-color: #888;
+          background-color: var(--pill-background-color-secondary);
         }
       }
     }

@@ -22,11 +22,9 @@
     max-width: 500px;
     padding: 20px;
     border: 2px solid #f00;
-    border-radius: 6px;
-    box-shadow:
-      0px 1px 1px 0px #1f23280f,
-      0px 1px 3px 0px #1f23280f;
-    background-color: #fdfdfd;
+    border-radius: var(--box-border-radius);
+    box-shadow: var(--box-shadow);
+    background-color: var(--box-background-color);
     text-align: justify;
   }
 </style>
