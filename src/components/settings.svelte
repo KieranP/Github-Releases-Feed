@@ -1,6 +1,7 @@
 <script lang="ts">
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
+  import themeSvg from '../assets/theme.svg?raw'
   import { db } from '../db'
   import { settings } from '../state.svelte'
 
@@ -17,6 +18,15 @@
     settingsOpen = !settingsOpen
   }
 
+  function toggleDarkMode(): void {
+    document.body.classList.toggle('dark-mode')
+
+    saveBooleanSetting(
+      'darkMode',
+      document.body.classList.contains('dark-mode'),
+    )
+  }
+
   function saveBooleanSetting(
     setting: KeysWithValsOfType<typeof settings, boolean>,
     value: boolean,
@@ -28,6 +38,22 @@
 
 <div id="settings_btn">
   <button
+    onclick={toggleSettings}
+    type="button"
+  >
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html settingsSvg}
+  </button>
+
+  <button
+    onclick={toggleDarkMode}
+    type="button"
+  >
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html themeSvg}
+  </button>
+
+  <button
     onclick={(): void => {
       window.open('https://github.com/KieranP/Github-Releases-Feed', '_blank')
     }}
@@ -35,14 +61,6 @@
   >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html githubSvg}
-  </button>
-
-  <button
-    onclick={toggleSettings}
-    type="button"
-  >
-    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    {@html settingsSvg}
   </button>
 </div>
 
@@ -165,16 +183,18 @@
     top: 20px;
     right: 20px;
     z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 
     button {
       margin: 0;
-      padding: 5px 8px;
       line-height: 15px;
 
       :global {
         svg {
-          width: 15px;
-          height: 15px;
+          width: 18px;
+          height: 18px;
           fill: var(--svg-fill-color);
         }
       }
@@ -183,8 +203,8 @@
 
   #settings {
     position: fixed;
-    top: 60px;
-    right: 20px;
+    top: 20px;
+    right: 50px;
     z-index: 100;
     width: 300px;
     padding: 20px;

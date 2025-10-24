@@ -2,6 +2,13 @@ import { SvelteDate, SvelteSet } from 'svelte/reactivity'
 
 import type { ReleaseObj } from './github'
 
+const darkModePreferred = globalThis.matchMedia(
+  '(prefers-color-scheme: dark)',
+).matches
+
+const darkModeRaw = localStorage.getItem('darkMode')
+const darkMode = darkModePreferred || darkModeRaw === 'true'
+
 const expandDescriptions = localStorage.getItem('expandDescriptions') === 'true'
 const hidePrereleases = localStorage.getItem('hidePrereleases') === 'true'
 const hidePreviouslySeen = localStorage.getItem('hidePreviouslySeen') === 'true'
@@ -35,6 +42,7 @@ if (ignoredPrereleasesRaw !== null) {
 }
 
 export const settings: {
+  darkMode: boolean
   expandDescriptions: boolean
   hidePrereleases: boolean
   hidePreviouslySeen: boolean
@@ -44,6 +52,7 @@ export const settings: {
   showIgnoredRepos: boolean
   showLanguages: boolean
 } = $state({
+  darkMode,
   expandDescriptions,
   hidePrereleases,
   hidePreviouslySeen,

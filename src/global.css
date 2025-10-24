@@ -16,10 +16,8 @@
   --release-description-code-background-color: #818b981f;
   --release-description-pre-background-color: #818b981f;
   --svg-fill-color: var(--body-font-color);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
+  body.dark-mode {
     --body-background-color: #050505;
     --body-font-color: #cccccc;
     --box-background-color: #020202;
@@ -27,6 +25,7 @@
     --box-hover-color: #1e1e1e;
     --box-shadow: 0px 1px 1px #e0dcd70f, 0px 1px 3px #e0dcd70f;
     --link-color-visited: #936aad;
+    --link-color: var(--body-font-color);
     --pill-background-color-primary: #cccccc;
     --pill-background-color-secondary: #777777;
     --pill-font-color: #000000;
@@ -34,6 +33,7 @@
     --release-description-background-color: #090705;
     --release-description-code-background-color: #818b981f;
     --release-description-pre-background-color: #818b981f;
+    --svg-fill-color: var(--body-font-color);
   }
 }
 

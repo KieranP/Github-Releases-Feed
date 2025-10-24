@@ -22,7 +22,7 @@
     type ReleaseObj,
     reposQuery,
   } from './github'
-  import { appState, lastSeenPublishedAt } from './state.svelte'
+  import { appState, lastSeenPublishedAt, settings } from './state.svelte'
 
   let githubToken = $state<string | null>(null)
   let octokit = $derived.by((): Octokit | undefined => {
@@ -259,6 +259,10 @@
   }
 
   onMount((): void => {
+    if (settings.darkMode) {
+      document.body.classList.add('dark-mode')
+    }
+
     fetchGithubToken()
     void fetchReleases()
   })
