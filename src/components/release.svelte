@@ -451,7 +451,9 @@
     .description {
       margin-block: 16px;
       padding: 16px;
-      overflow-x: scroll;
+      overflow-x: auto;
+      scrollbar-color: var(--body-font-color)
+        var(--release-description-background-color);
       background-color: var(--release-description-background-color);
       font-size: 15px;
 
