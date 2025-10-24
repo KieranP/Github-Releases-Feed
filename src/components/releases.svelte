@@ -140,13 +140,12 @@
       display: flex;
       flex-direction: row;
       font-size: 13px;
-      color: #333;
 
       &:before,
       &:after {
         content: '';
         flex: 1 1;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--box-border-color);
         margin: auto;
       }
 
@@ -162,28 +161,22 @@
     .release_group {
       display: flex;
       flex-direction: column;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background-color: #fdfdfd;
-      box-shadow:
-        0px 1px 1px 0px #1f23280f,
-        0px 1px 3px 0px #1f23280f;
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--box-border-radius);
+      background-color: var(--box-background-color);
+      box-shadow: var(--box-shadow);
       line-height: 20px;
       font-size: 15px;
-      color: #333;
 
       .show_more {
         padding: 10px 20px;
-        border: 0;
-        border-top: 1px solid #ccc;
-        background-color: #fdfdfd;
-        border-radius: 0 0 7px 7px;
+        border-top: 1px solid var(--box-border-color);
+        background-color: var(--box-background-color);
+        border-radius: 0 0 var(--box-border-radius) var(--box-border-radius);
         font-size: 15px;
-        color: #333;
-        cursor: pointer;
 
         &:hover {
-          background-color: #f6f6f6;
+          background-color: var(--box-hover-color);
         }
       }
     }

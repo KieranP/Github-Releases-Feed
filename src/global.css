@@ -1,4 +1,49 @@
+:root {
+  --body-background-color: #fafafa;
+  --body-font-color: #333333;
+  --box-background-color: #fdfdfd;
+  --box-border-color: #cccccc;
+  --box-border-radius: 6px;
+  --box-hover-color: #f6f6f6;
+  --box-shadow: 0px 1px 1px #1f23280f, 0px 1px 3px #1f23280f;
+  --link-color-visited: #570987;
+  --link-color: var(--body-font-color);
+  --pill-background-color-primary: #333333;
+  --pill-background-color-secondary: #888888;
+  --pill-font-color: #ffffff;
+  --progress-bar-color: #008000;
+  --release-description-background-color: #f6f8fa;
+  --release-description-code-background-color: #818b981f;
+  --release-description-pre-background-color: #818b981f;
+  --svg-fill-color: var(--body-font-color);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-background-color: #050505;
+    --body-font-color: #cccccc;
+    --box-background-color: #020202;
+    --box-border-color: #333333;
+    --box-hover-color: #1e1e1e;
+    --box-shadow: 0px 1px 1px #e0dcd70f, 0px 1px 3px #e0dcd70f;
+    --link-color-visited: #936aad;
+    --pill-background-color-primary: #cccccc;
+    --pill-background-color-secondary: #777777;
+    --pill-font-color: #000000;
+    --progress-bar-color: #008000;
+    --release-description-background-color: #090705;
+    --release-description-code-background-color: #818b981f;
+    --release-description-pre-background-color: #818b981f;
+  }
+}
+
 body {
-  background-color: #fafafa;
+  background-color: var(--body-background-color);
   font-family: Helvetica, Arial, sans-serif;
+  color: var(--body-font-color);
+}
+
+a {
+  color: var(--link-color);
+  text-underline-offset: 2px;
 }

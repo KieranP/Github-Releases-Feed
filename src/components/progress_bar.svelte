@@ -1,4 +1,6 @@
 <script lang="ts">
+  import loadingSvg from '../assets/loading.svg?raw'
+
   interface Props {
     loading: boolean
     progress: number
@@ -22,10 +24,8 @@
     </div>
   {:else}
     <div id="loading">
-      <img
-        alt="Loading..."
-        src="./loading.svg"
-      />
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+      {@html loadingSvg}
     </div>
   {/if}
 {/if}
@@ -37,8 +37,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
 
-    img {
-      width: 120px;
+    :global {
+      svg {
+        width: 120px;
+        fill: var(--svg-fill-color);
+      }
     }
   }
 
@@ -52,13 +55,13 @@
     width: 100%;
     max-width: 1000px;
     line-height: 0;
-    background-color: #fafafa;
+    background-color: var(--body-background-color);
 
     span {
       display: inline-block;
       margin: 0;
       height: 10px;
-      background-color: green;
+      background-color: var(--progress-bar-color);
     }
   }
 </style>

@@ -123,6 +123,10 @@
     button {
       margin: 0;
       padding: 5px 10px;
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--box-border-radius);
+      background-color: var(--box-background-color);
+      box-shadow: var(--box-shadow);
       line-height: 35px;
       font-size: 20px;
     }
@@ -133,6 +137,10 @@
 
     button {
       width: 20%;
+
+      &:hover {
+        background-color: var(--box-hover-color);
+      }
     }
 
     details {

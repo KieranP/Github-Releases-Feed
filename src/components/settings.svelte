@@ -1,4 +1,6 @@
 <script lang="ts">
+  import settingsSvg from '../assets/gear.svg?raw'
+  import githubSvg from '../assets/github.svg?raw'
   import { db } from '../db'
   import { settings } from '../state.svelte'
 
@@ -31,21 +33,17 @@
     }}
     type="button"
   >
-    <img
-      alt="Github"
-      src="./github.svg"
-    /></button
-  >
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html githubSvg}
+  </button>
 
   <button
     onclick={toggleSettings}
     type="button"
   >
-    <img
-      alt="Settings"
-      src="./gear.svg"
-    /></button
-  >
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html settingsSvg}
+  </button>
 </div>
 
 {#if settingsOpen}
@@ -172,11 +170,13 @@
       margin: 0;
       padding: 5px 8px;
       line-height: 15px;
-      cursor: pointer;
 
-      img {
-        width: 15px;
-        height: 15px;
+      :global {
+        svg {
+          width: 15px;
+          height: 15px;
+          fill: var(--svg-fill-color);
+        }
       }
     }
   }
@@ -188,20 +188,28 @@
     z-index: 100;
     width: 300px;
     padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background-color: #fdfdfd;
-    box-shadow:
-      0px 1px 1px 0px #1f23280f,
-      0px 1px 3px 0px #1f23280f;
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--box-border-radius);
+    background-color: var(--box-background-color);
+    box-shadow: var(--box-shadow);
 
     #buttons {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
       margin-top: 20px;
-      text-align: center;
 
       button {
-        padding: 0 5px;
+        padding: 4px 8px;
+        border: 1px solid var(--box-border-color);
+        border-radius: var(--box-border-radius);
+        background-color: var(--box-background-color);
+        box-shadow: var(--box-shadow);
         font-size: 14px;
+
+        &:hover {
+          background-color: var(--box-hover-color);
+        }
       }
     }
   }
