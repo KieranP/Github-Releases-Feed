@@ -308,13 +308,6 @@
 <style>
   .release {
     padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    background-color: #fdfdfd;
-    filter: drop-shadow(5px 5px 5px #ccc);
-    line-height: 20px;
-    font-size: 15px;
-    color: #333;
 
     a {
       color: #333;
@@ -563,6 +556,19 @@
 
     :last-child {
       margin-bottom: 0;
+    }
+
+    :global {
+      &:has(+ .release) {
+        padding-bottom: 0;
+
+        + .release {
+          .info,
+          .menu {
+            display: none;
+          }
+        }
+      }
     }
   }
 </style>
