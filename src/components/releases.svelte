@@ -163,9 +163,11 @@
       display: flex;
       flex-direction: column;
       border: 1px solid #ccc;
-      border-radius: 7px;
+      border-radius: 6px;
       background-color: #fdfdfd;
-      filter: drop-shadow(3px 3px 3px #ccc);
+      box-shadow:
+        0px 1px 1px 0px #1f23280f,
+        0px 1px 3px 0px #1f23280f;
       line-height: 20px;
       font-size: 15px;
       color: #333;

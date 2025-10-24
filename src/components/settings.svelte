@@ -189,9 +189,11 @@
     width: 300px;
     padding: 20px;
     border: 1px solid #ccc;
-    border-radius: 7px;
+    border-radius: 6px;
     background-color: #fdfdfd;
-    filter: drop-shadow(5px 5px 5px #ccc);
+    box-shadow:
+      0px 1px 1px 0px #1f23280f,
+      0px 1px 3px 0px #1f23280f;
 
     #buttons {
       margin-top: 20px;

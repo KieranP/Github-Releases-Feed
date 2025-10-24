@@ -307,16 +307,18 @@
 
 <style>
   .release {
+    position: relative;
     padding: 20px;
 
     a {
       color: #333;
+      text-underline-offset: 2px;
     }
 
     .pill {
       display: inline-block;
       padding: 4px 10px;
-      border-radius: 10px;
+      border-radius: 6px;
       background-color: #333;
       color: #fff;
       line-height: 13px;
@@ -331,7 +333,7 @@
         img {
           width: 40px;
           height: 40px;
-          border-radius: 7px;
+          border-radius: 6px;
         }
       }
 
@@ -343,13 +345,15 @@
           position: absolute;
           z-index: 98;
           top: 25px;
-          left: 5px;
+          left: 0px;
           width: 350px;
           padding: 20px;
           border: 1px solid #ccc;
-          border-radius: 7px;
+          border-radius: 6px;
           background-color: #fdfdfd;
-          filter: drop-shadow(5px 5px 5px #ccc);
+          box-shadow:
+            0px 1px 1px 0px #1f23280f,
+            0px 1px 3px 0px #1f23280f;
           line-height: 20px;
           font-size: 14px;
 
@@ -411,9 +415,11 @@
       width: 300px;
       padding: 5px;
       border: 1px solid #ccc;
-      border-radius: 7px;
+      border-radius: 6px;
       background-color: #fdfdfd;
-      filter: drop-shadow(5px 5px 5px #ccc);
+      box-shadow:
+        0px 1px 1px 0px #1f23280f,
+        0px 1px 3px 0px #1f23280f;
 
       button {
         display: block;
@@ -443,7 +449,7 @@
 
       .status {
         position: relative;
-        top: -4px;
+        top: -2px;
         left: 5px;
         font-weight: normal;
       }
@@ -453,7 +459,7 @@
       margin-block: 16px;
       padding: 16px;
       overflow-x: scroll;
-      background-color: #f6f6f6;
+      background-color: #f6f8fa;
       font-size: 15px;
 
       &.truncated {
@@ -486,47 +492,115 @@
         }
 
         h1 {
-          margin-block: 10px;
+          margin-block: 24px 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #ccc;
           line-height: 20px;
           font-size: 20px;
         }
 
         h2 {
-          margin-block: 10px;
+          margin-block: 24px 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #ccc;
           line-height: 18px;
           font-size: 18px;
         }
 
         h3 {
-          margin-block: 5px;
+          margin-block: 24px 12px;
           line-height: 16px;
           font-size: 16px;
         }
 
         h4 {
-          margin-block: 5px;
+          margin-block: 16px 8px;
           line-height: 16px;
           font-size: 16px;
         }
 
         h5 {
-          margin-block: 5px;
+          margin-block: 16px 8px;
           line-height: 16px;
           font-size: 16px;
         }
 
         h6 {
-          margin-block: 5px;
+          margin-block: 16px 8px;
           line-height: 16px;
           font-size: 16px;
         }
 
-        ul {
-          padding-left: 25px;
+        p {
+          margin-bottom: 12px;
+        }
+
+        ul,
+        ol {
+          margin-bottom: 16px;
+          padding-left: 28px;
+
+          li {
+            margin-bottom: 4px;
+          }
         }
 
         a {
           color: #333 !important;
+          text-underline-offset: 2px;
+        }
+
+        hr {
+          margin: 16px 0;
+          height: 2px;
+          outline: 0;
+          border: 0;
+          background-color: #ccc;
+        }
+
+        pre {
+          padding: 16px;
+          overflow: scroll;
+          background-color: #818b981f;
+        }
+
+        code {
+          padding: 2px 4px;
+          background-color: #818b981f;
+        }
+
+        table {
+          border-collapse: collapse;
+
+          th,
+          td {
+            padding: 8px;
+            border: 1px solid #ccc;
+          }
+        }
+
+        div.markdown-alert {
+          padding-left: 16px;
+
+          .markdown-alert-title {
+            display: flex;
+
+            svg {
+              margin-right: 8px;
+            }
+          }
+
+          &.markdown-alert-note {
+            border-left: 3px solid #0969da;
+
+            .markdown-alert-title {
+              color: #0969da;
+
+              svg {
+                fill: #0969da;
+              }
+            }
+          }
         }
       }
     }
@@ -540,6 +614,7 @@
         font-size: 15px;
         font-weight: bold;
         text-decoration: underline;
+        text-underline-offset: 2px;
       }
     }
 
