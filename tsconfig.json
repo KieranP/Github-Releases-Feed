@@ -4,7 +4,6 @@
   "include": ["src/**/*.ts", "src/**/*.svelte"],
   "compilerOptions": {
     // Modules
-    "baseUrl": "./",
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
