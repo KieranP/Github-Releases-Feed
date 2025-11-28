@@ -1,90 +1,20 @@
 <script lang="ts">
-  import { appState, lastSeenPublishedAt, settings } from '../state.svelte'
   import Release from './release.svelte'
 
-  import type { ReleaseObj } from '../github'
+  import type { ReleaseGroup } from '../models/release_group.svelte'
 
   interface Props {
-    allReleases: ReleaseObj[]
+    releaseGroups: ReleaseGroup[]
   }
 
-  const { allReleases }: Props = $props()
-
-  class ReleaseGroup {
-    public repo!: string
-    public releases: ReleaseObj[] = []
-    public expanded: boolean = $state(false)
-
-    public constructor(repo: string) {
-      this.repo = repo
-    }
-
-    public get key(): string {
-      return this.repo + this.releases[0]?.id
-    }
-  }
-
-  let groupedReleases = $derived.by((): ReleaseGroup[] => {
-    const groups: ReleaseGroup[] = []
-    let currentGroup: ReleaseGroup | null = null
-
-    for (const release of allReleases) {
-      const repo = release.repo.fullName
-
-      if (currentGroup && currentGroup.repo !== repo) {
-        groups.push(currentGroup)
-        currentGroup = new ReleaseGroup(repo)
-      }
-
-      currentGroup ??= new ReleaseGroup(repo)
-      currentGroup.releases.push(release)
-    }
-
-    if (currentGroup) {
-      groups.push(currentGroup)
-    }
-
-    return groups
-  })
-
-  function shouldDisplayRelease(release: ReleaseObj): boolean {
-    if (release.isPrerelease && settings.hidePrereleases) {
-      return false
-    }
-
-    if (
-      settings.hidePreviouslySeen &&
-      release.publishedAt <= lastSeenPublishedAt
-    ) {
-      return false
-    }
-
-    const isIgnoredRepo = settings.ignoredRepos.has(release.repo.fullName)
-    if (isIgnoredRepo && !settings.showIgnoredRepos) {
-      return false
-    }
-
-    const isIgnoredPrerelease =
-      release.isPrerelease &&
-      settings.ignoredPrereleases.has(release.repo.fullName)
-    if (isIgnoredPrerelease && !settings.showIgnoredPrereleases) {
-      return false
-    }
-
-    return true
-  }
-
-  const lastSeenId = $derived(appState.firstReleaseBeforeLastSeen?.id)
-  function shouldDisplayCaughtUp(releases: ReleaseObj[]): boolean {
-    return releases.some((release) => lastSeenId === release.id)
-  }
+  const { releaseGroups }: Props = $props()
 </script>
 
 <div id="releases">
-  {#each groupedReleases as group (group.key)}
-    {@const displayableReleases = group.releases.filter(shouldDisplayRelease)}
+  {#each releaseGroups as group (group.key)}
+    {@const { displayableReleases } = group}
 
-    {#if shouldDisplayCaughtUp(group.releases)}
+    {#if group.showCaughtUp}
       <div id="caught_up">You're All Caught Up</div>
     {/if}
 
@@ -95,7 +25,7 @@
       {@const hiddenCount = displayableReleases.length - 1}
 
       <div class="release_group">
-        {#each visibleReleases as release (release.id)}
+        {#each visibleReleases as release (release.data.id)}
           <Release {release} />
         {/each}
 

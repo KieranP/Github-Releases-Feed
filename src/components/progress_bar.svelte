@@ -2,11 +2,10 @@
   import loadingSvg from '../assets/loading.svg?raw'
 
   interface Props {
-    loading: boolean
     progress: number
   }
 
-  const { loading, progress }: Props = $props()
+  const { progress }: Props = $props()
 
   let progressSpan = $state<HTMLSpanElement>()
 
@@ -17,17 +16,15 @@
   })
 </script>
 
-{#if loading}
-  {#if progress > 0}
-    <div id="progress">
-      <span bind:this={progressSpan}></span>
-    </div>
-  {:else}
-    <div id="loading">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html loadingSvg}
-    </div>
-  {/if}
+{#if progress > 0}
+  <div id="progress">
+    <span bind:this={progressSpan}></span>
+  </div>
+{:else}
+  <div id="loading">
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html loadingSvg}
+  </div>
 {/if}
 
 <style>

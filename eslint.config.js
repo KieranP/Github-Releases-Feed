@@ -76,6 +76,7 @@ export default eslintTS.config(
       'svelte/experimental-require-strict-events': 'off',
       'svelte/no-navigation-without-base': 'off',
       'svelte/no-top-level-browser-globals': 'off',
+      'svelte/prefer-svelte-reactivity': 'off',
     },
   },
 

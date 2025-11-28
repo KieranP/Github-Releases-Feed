@@ -6,11 +6,10 @@
   import { settings } from '../state.svelte'
 
   interface Props {
-    githubToken: string | null
     onlogout: () => void
   }
 
-  let { onlogout, githubToken }: Props = $props()
+  let { onlogout }: Props = $props()
 
   let settingsOpen = $state(false)
 
@@ -164,7 +163,7 @@
         type="button">Clear Cache</button
       >
 
-      {#if githubToken}
+      {#if settings.githubToken}
         <button
           onclick={(): void => {
             onlogout()

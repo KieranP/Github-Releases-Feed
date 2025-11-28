@@ -1,49 +1,39 @@
-import { SvelteDate, SvelteSet } from 'svelte/reactivity'
+import { SvelteSet } from 'svelte/reactivity'
 
-import type { ReleaseObj } from './github'
+function fetchAsSet(key: string): SvelteSet<string> {
+  const json = localStorage.getItem(key)
+  if (json !== null) {
+    try {
+      const array = JSON.parse(json) as string[]
+      return new SvelteSet(array)
+    } catch {
+      console.error(`Parsing ${key} failed`)
+    }
+  }
+
+  return new SvelteSet()
+}
+
+function fetchAsDate(key: string): Date | null {
+  const value = localStorage.getItem(key)
+  if (value === null) return null
+  return new Date(value)
+}
+
+function fetchAsBool(key: string): boolean {
+  return localStorage.getItem(key) === 'true'
+}
 
 const darkModePreferred = globalThis.matchMedia(
   '(prefers-color-scheme: dark)',
 ).matches
-
-const darkModeRaw = localStorage.getItem('darkMode')
-const darkMode = darkModePreferred || darkModeRaw === 'true'
-
-const expandDescriptions = localStorage.getItem('expandDescriptions') === 'true'
-const hidePrereleases = localStorage.getItem('hidePrereleases') === 'true'
-const hidePreviouslySeen = localStorage.getItem('hidePreviouslySeen') === 'true'
-const showIgnoredRepos = localStorage.getItem('showIgnoredRepos') === 'true'
-const showIgnoredPrereleases =
-  localStorage.getItem('showIgnoredPrereleases') === 'true'
-const showLanguages = localStorage.getItem('showLanguages') === 'true'
-
-let ignoredRepos = new SvelteSet<string>()
-const ignoredReposRaw = localStorage.getItem('ignoredRepos')
-if (ignoredReposRaw !== null) {
-  try {
-    const ignoredReposArray = JSON.parse(ignoredReposRaw) as string[]
-    ignoredRepos = new SvelteSet(ignoredReposArray)
-  } catch {
-    console.error('Parsing ignoredRepos failed')
-  }
-}
-
-let ignoredPrereleases = new SvelteSet<string>()
-const ignoredPrereleasesRaw = localStorage.getItem('ignoredPrereleases')
-if (ignoredPrereleasesRaw !== null) {
-  try {
-    const ignoredPrereleasesArray = JSON.parse(
-      ignoredPrereleasesRaw,
-    ) as string[]
-    ignoredPrereleases = new SvelteSet(ignoredPrereleasesArray)
-  } catch {
-    console.error('Parsing ignoredPrereleases failed')
-  }
-}
+const darkModeRaw = fetchAsBool('darkMode')
+const darkMode = darkModePreferred || darkModeRaw
 
 export const settings: {
   darkMode: boolean
   expandDescriptions: boolean
+  githubToken: string | null
   hidePrereleases: boolean
   hidePreviouslySeen: boolean
   ignoredPrereleases: Set<string>
@@ -53,22 +43,15 @@ export const settings: {
   showLanguages: boolean
 } = $state({
   darkMode,
-  expandDescriptions,
-  hidePrereleases,
-  hidePreviouslySeen,
-  ignoredPrereleases,
-  ignoredRepos,
-  showIgnoredPrereleases,
-  showIgnoredRepos,
-  showLanguages,
+  expandDescriptions: fetchAsBool('expandDescriptions'),
+  githubToken: localStorage.getItem('githubToken'),
+  hidePrereleases: fetchAsBool('hidePrereleases'),
+  hidePreviouslySeen: fetchAsBool('hidePreviouslySeen'),
+  ignoredPrereleases: fetchAsSet('ignoredPrereleases'),
+  ignoredRepos: fetchAsSet('ignoredRepos'),
+  showIgnoredPrereleases: fetchAsBool('showIgnoredPrereleases'),
+  showIgnoredRepos: fetchAsBool('showIgnoredRepos'),
+  showLanguages: fetchAsBool('showLanguages'),
 })
 
-export const appState: {
-  firstReleaseBeforeLastSeen?: ReleaseObj | undefined
-} = $state({})
-
-const lastSeenPublishedAtString = localStorage.getItem('lastSeenPublishedAt')
-export const lastSeenPublishedAt: Date =
-  lastSeenPublishedAtString === null
-    ? new SvelteDate(0) // 1970-01-01
-    : new SvelteDate(lastSeenPublishedAtString)
+export const lastAccessedAt: Date = fetchAsDate('lastAccessedAt') ?? new Date(0)

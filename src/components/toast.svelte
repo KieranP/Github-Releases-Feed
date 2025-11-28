@@ -6,11 +6,9 @@
   const { toast }: Props = $props()
 </script>
 
-{#if toast}
-  <div id="toast">
-    {toast}
-  </div>
-{/if}
+<div id="toast">
+  {toast}
+</div>
 
 <style>
   #toast {
