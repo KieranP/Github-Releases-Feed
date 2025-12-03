@@ -1,7 +1,7 @@
 {
   // See https://www.typescriptlang.org/tsconfig
   "extends": "@tsconfig/svelte/tsconfig.json",
-  "include": ["src/**/*.ts", "src/**/*.svelte"],
+  "include": ["*.ts", "src/**/*.ts", "src/**/*.svelte"],
   "compilerOptions": {
     // Modules
     "module": "esnext",

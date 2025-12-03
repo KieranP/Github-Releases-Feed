@@ -9,7 +9,8 @@
   // Extensions
   "auto_install_extensions": {
     "html": true,
-    "svelte": true
+    "svelte": true,
+    "tsgo": true
   },
 
   // Language / LSP
@@ -19,6 +20,7 @@
   },
   "languages": {
     "JavaScript": {
+      "language_servers": ["tsgo", "vtsls"],
       "formatter": [
         {
           "code_action": "source.fixAll.eslint"
@@ -45,6 +47,7 @@
       ]
     },
     "TypeScript": {
+      "language_servers": ["tsgo", "vtsls"],
       "formatter": [
         {
           "code_action": "source.fixAll.eslint"
