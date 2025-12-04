@@ -1,6 +1,7 @@
 import eslint from '@eslint/js'
 import eslintPrettier from 'eslint-config-prettier'
 import eslintSvelte from 'eslint-plugin-svelte'
+import { defineConfig } from 'eslint/config'
 // import oxlint from 'eslint-plugin-oxlint'
 import globals from 'globals'
 import eslintTS from 'typescript-eslint'
@@ -10,9 +11,18 @@ import svelteConfig from './svelte.config.js'
 const svelteFiles = ['**/*.svelte', '**/*.svelte.{js,ts}']
 const tsAndSvelteFiles = ['**/*.{js,ts}', ...svelteFiles]
 
-export default eslintTS.config(
+export default defineConfig(
   {
-    extends: [eslint.configs.all, eslintTS.configs.all],
+    ...eslint.configs.all,
+    files: tsAndSvelteFiles,
+  },
+
+  ...eslintTS.configs.all.map((cfg) => ({
+    ...cfg,
+    files: tsAndSvelteFiles,
+  })),
+
+  {
     files: tsAndSvelteFiles,
     languageOptions: {
       parserOptions: {
@@ -56,8 +66,17 @@ export default eslintTS.config(
     },
   },
 
+  ...eslintSvelte.configs.all.map((cfg) => ({
+    ...cfg,
+    files: svelteFiles,
+  })),
+
   {
-    extends: [eslintSvelte.configs.all, eslintSvelte.configs.prettier.at(-1)],
+    ...eslintSvelte.configs.prettier.at(-1),
+    files: svelteFiles,
+  },
+
+  {
     files: svelteFiles,
     languageOptions: {
       parserOptions: {
