@@ -6,11 +6,11 @@
   import { settings } from '../state.svelte'
 
   interface Props {
-    githubToken: string | null
+    ondebug: () => void
     onlogout: () => void
   }
 
-  let { onlogout, githubToken }: Props = $props()
+  let { ondebug, onlogout }: Props = $props()
 
   let settingsOpen = $state(false)
 
@@ -159,12 +159,19 @@
     <div id="buttons">
       <button
         onclick={(): void => {
+          ondebug()
+        }}
+        type="button">Debug</button
+      >
+
+      <button
+        onclick={(): void => {
           void db?.clear('descriptions')
         }}
         type="button">Clear Cache</button
       >
 
-      {#if githubToken}
+      {#if settings.githubToken}
         <button
           onclick={(): void => {
             onlogout()

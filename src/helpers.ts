@@ -6,3 +6,9 @@ export const intersectionObserver: IntersectionObserver =
       )
     })
   })
+
+export const starsFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
+  compactDisplay: 'short',
+  maximumSignificantDigits: 3,
+  notation: 'compact',
+})

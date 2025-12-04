@@ -4,47 +4,30 @@
   import ignoredSvg from '../assets/ignored.svg?raw'
   import loadingSvg from '../assets/loading.svg?raw'
   import threeDotsSvg from '../assets/three-dots.svg?raw'
-  import { intersectionObserver } from '../helpers'
+  import { intersectionObserver, starsFormatter } from '../helpers'
   import { settings } from '../state.svelte'
 
-  import type { ReleaseObj } from '../github'
+  import type { Release } from '../models/release.svelte'
 
   interface Props {
-    release: ReleaseObj
+    release: Release
   }
 
   const { release }: Props = $props()
 
-  let loadDescription = $state(false)
   let descriptionDiv = $state<HTMLDivElement>()
-  let expandDescriptionDiv = $state<HTMLDivElement>()
-  let oversized = $state(false)
   let menuOpen = $state(false)
 
-  let showDescription = $derived(
-    loadDescription &&
-      (release.descriptionHTML === undefined || release.descriptionHTML !== ''),
-  )
-
-  const repo = $derived(release.repo)
+  const data = $derived(release.data)
+  const repo = $derived(data.repo)
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
-  const ignoredRepo = $derived(settings.ignoredRepos.has(repo.fullName))
-  const ignoredPrerelease = $derived(
-    settings.ignoredPrereleases.has(repo.fullName),
-  )
-
-  const starsFormatter = new Intl.NumberFormat('en', {
-    compactDisplay: 'short',
-    maximumSignificantDigits: 3,
-    notation: 'compact',
-  })
 
   function onintersect({
     detail: { isIntersecting, target },
   }: CustomEvent<IntersectionObserverEntry>): void {
-    if (isIntersecting && !loadDescription) {
-      loadDescription = true
+    if (isIntersecting) {
+      release.descriptionEnteredViewport = true
       intersectionObserver.unobserve(target)
     }
   }
@@ -60,8 +43,7 @@
   }
 
   function expandDescription(): void {
-    if (descriptionDiv) descriptionDiv.classList.remove('truncated')
-    if (expandDescriptionDiv) expandDescriptionDiv.style.display = 'none'
+    release.descriptionIsTruncated = false
   }
 
   function toggleMenu(): void {
@@ -107,9 +89,9 @@
   }
 
   $effect((): void => {
-    if (release.descriptionHTML !== undefined && descriptionDiv) {
+    if (descriptionDiv && data.descriptionHTML !== undefined) {
       const rect = descriptionDiv.getBoundingClientRect()
-      oversized = rect.height > 150
+      release.descriptionHeight = rect.height
     }
   })
 </script>
@@ -174,7 +156,7 @@
 
       <div
         class="time"
-        title={intlFormat(release.publishedAt, {
+        title={intlFormat(data.publishedAt, {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
@@ -183,13 +165,13 @@
           timeZoneName: 'short',
         })}
       >
-        {intlFormatDistance(release.publishedAt, new Date())}
+        {intlFormatDistance(data.publishedAt, new Date())}
       </div>
     </div>
 
     <div class="spacer"></div>
 
-    {#if ignoredRepo || (ignoredPrerelease && release.isPrerelease)}
+    {#if release.isIgnoredRepo || release.isIgnoredPrerelease}
       <div class="ignored">
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html ignoredSvg}
@@ -209,7 +191,7 @@
 
   {#if menuOpen}
     <div class="menu">
-      {#if ignoredRepo}
+      {#if release.isIgnoredRepo}
         <button
           onclick={unignoreRepo}
           type="button">Unignore all releases from this repo</button
@@ -221,8 +203,8 @@
         >
       {/if}
 
-      {#if !ignoredRepo}
-        {#if ignoredPrerelease}
+      {#if !release.isIgnoredRepo}
+        {#if release.isIgnoredPrerelease}
           <button
             onclick={unignorePrerelease}
             type="button">Unignore prereleases from this repo</button
@@ -239,42 +221,39 @@
 
   <div class="name">
     <a
-      href={release.url}
+      href={data.url}
       rel="noopener noreferrer"
-      target="_blank">{release.name || release.tagName}</a
+      target="_blank">{data.name || data.tagName}</a
     >
 
-    {#if release.isPrerelease || release.isDraft}
+    {#if data.isPrerelease || data.isDraft}
       <span class="pill status">
-        {#if release.isPrerelease}
+        {#if data.isPrerelease}
           Prerelease
-        {:else if release.isDraft}
+        {:else if data.isDraft}
           Draft
         {/if}
       </span>
     {/if}
   </div>
 
-  {#if showDescription}
+  {#if release.shouldDisplayDescription}
     <div
       bind:this={descriptionDiv}
       class="description"
-      class:truncated={oversized && !settings.expandDescriptions}
+      class:truncated={release.descriptionIsTruncated}
     >
-      {#if release.descriptionHTML !== undefined}
+      {#if data.descriptionHTML !== undefined}
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-        {@html release.descriptionHTML}
+        {@html data.descriptionHTML}
       {:else}
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html loadingSvg}
       {/if}
     </div>
 
-    {#if oversized && !settings.expandDescriptions}
-      <div
-        bind:this={expandDescriptionDiv}
-        class="expand_description"
-      >
+    {#if release.descriptionIsTruncated}
+      <div class="expand_description">
         <button
           onclick={expandDescription}
           type="button">Read more</button

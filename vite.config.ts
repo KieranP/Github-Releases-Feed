@@ -9,10 +9,6 @@ const config: UserConfig = defineConfig({
   css: {
     transformer: 'lightningcss',
   },
-  build: {
-    cssMinify: 'lightningcss',
-    target: 'esnext',
-  },
   server: {
     headers: {
       // So performance.now() reports in microseconds
