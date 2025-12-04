@@ -7,18 +7,14 @@
 
   const { progress }: Props = $props()
 
-  let progressSpan = $state<HTMLSpanElement>()
-
-  $effect((): void => {
-    if (!progressSpan) return
-
-    progressSpan.style.width = `${progress * 100}%`
-  })
+  function barResizer(element: HTMLSpanElement): void {
+    element.style.width = `${progress * 100}%`
+  }
 </script>
 
 {#if progress > 0}
   <div id="progress">
-    <span bind:this={progressSpan}></span>
+    <span {@attach barResizer}></span>
   </div>
 {:else}
   <div id="loading">

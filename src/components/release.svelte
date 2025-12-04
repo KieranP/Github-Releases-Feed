@@ -15,7 +15,6 @@
 
   const { release }: Props = $props()
 
-  let descriptionDiv = $state<HTMLDivElement>()
   let menuOpen = $state(false)
 
   const data = $derived(release.data)
@@ -32,18 +31,12 @@
     }
   }
 
-  function observe(element: Element): { destroy: () => void } {
+  function observeIntersect(element: Element): () => void {
     intersectionObserver.observe(element)
 
-    return {
-      destroy(): void {
-        intersectionObserver.unobserve(element)
-      },
+    return () => {
+      intersectionObserver.unobserve(element)
     }
-  }
-
-  function expandDescription(): void {
-    release.descriptionIsTruncated = false
   }
 
   function toggleMenu(): void {
@@ -88,18 +81,22 @@
     )
   }
 
-  $effect((): void => {
-    if (descriptionDiv && data.descriptionHTML !== undefined) {
-      const rect = descriptionDiv.getBoundingClientRect()
+  function calculateHeight(element: HTMLDivElement): void {
+    if (data.descriptionHTML !== undefined) {
+      const rect = element.getBoundingClientRect()
       release.descriptionHeight = rect.height
     }
-  })
+  }
+
+  function expandDescription(): void {
+    release.descriptionIsTruncated = false
+  }
 </script>
 
 <div
   class="release"
+  {@attach observeIntersect}
   {onintersect}
-  use:observe
 >
   <div class="info">
     <div class="avatar">
@@ -239,9 +236,9 @@
 
   {#if release.shouldDisplayDescription}
     <div
-      bind:this={descriptionDiv}
       class="description"
       class:truncated={release.descriptionIsTruncated}
+      {@attach calculateHeight}
     >
       {#if data.descriptionHTML !== undefined}
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
