@@ -23,7 +23,7 @@
     "@sveltejs/vite-plugin-svelte": "6.2.1",
     "@trivago/prettier-plugin-sort-imports": "6.0.0",
     "@tsconfig/svelte": "5.0.6",
-    "@typescript/native-preview": "7.0.0-dev.20251204.1",
+    "@typescript/native-preview": "7.0.0-dev.20251205.1",
     "date-fns": "4.1.0",
     "eslint": "9.39.1",
     "eslint-config-prettier": "10.1.8",
