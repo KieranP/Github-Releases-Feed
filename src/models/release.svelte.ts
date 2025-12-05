@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-/* eslint-disable svelte/prefer-destructured-store-props */
 import { lastAccessedAt, settings } from '../state.svelte'
 
 import type { ReleaseObj } from '../github'

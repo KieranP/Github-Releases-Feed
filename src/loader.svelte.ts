@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable svelte/prefer-destructured-store-props */
 // https://docs.github.com/en/graphql
 // https://graphql-kit.com/graphql-voyager/
 import { Octokit } from '@octokit/core'
