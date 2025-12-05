@@ -12,6 +12,7 @@ import {
   type GithubReposResponse,
   reposQuery,
 } from './github'
+import { sortSplice } from './helpers'
 import { Release } from './models/release.svelte'
 import { ReleaseGroup } from './models/release_group.svelte'
 import { lastAccessedAt, settings } from './state.svelte'
@@ -189,8 +190,7 @@ class Loader {
     }, [])
 
     if (releases.length > 0) {
-      this.releases.push(...releases)
-      this.releases.sort(this.releaseSortFn)
+      sortSplice(this.releases, releases, this.releaseSortFn)
 
       this.firstReleaseBeforeLastAccessed = this.releases.find(
         (r): boolean => r.data.publishedAt <= lastAccessedAt,
