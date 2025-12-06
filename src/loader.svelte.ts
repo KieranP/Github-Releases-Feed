@@ -83,6 +83,9 @@ class Loader {
   }
 
   public reset(): void {
+    localStorage.removeItem('githubToken')
+    settings.githubToken = null
+
     void db?.clear('descriptions')
 
     this.loading = false
@@ -151,6 +154,17 @@ class Loader {
       }
     } catch (error: unknown) {
       console.log(error)
+
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        error.status === 401
+      ) {
+        this.reset()
+        this.toast = 'ERROR: API Token Invalid/Expired'
+        return
+      }
 
       if (this.retries < 3) {
         // Retry the same request up to 3 times

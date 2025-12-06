@@ -22,21 +22,16 @@
     return true
   }
 
-  function clearGithubToken(): void {
-    localStorage.removeItem('githubToken')
-    settings.githubToken = null
-  }
-
   function onlogin(inputValue: string): void {
     if (!inputValue) return
 
     if (saveGithubToken(inputValue)) {
+      loader.toast = ''
       loader.start()
     }
   }
 
   function onlogout(): void {
-    clearGithubToken()
     loader.reset()
   }
 
