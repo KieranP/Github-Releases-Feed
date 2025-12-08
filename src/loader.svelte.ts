@@ -74,6 +74,9 @@ class Loader {
     return groups
   })
 
+  private totalRequestTime = 0
+  private totalProccesingTime = 0
+
   public start(): void {
     if (!this.octokit) return
 
@@ -104,11 +107,13 @@ class Loader {
     }
 
     try {
+      const startRequestTime = performance.now()
       const response = await this.octokit.graphql<
         GithubReposResponse | undefined
       >(reposQuery, {
         cursor,
       })
+      this.totalRequestTime += performance.now() - startRequestTime
 
       // eslint-disable-next-line
       if (!this.octokit) {
@@ -144,9 +149,11 @@ class Loader {
         void this.fetchReleases(pageInfo.endCursor)
       }
 
+      const startProcessingTime = performance.now()
       repoNodes.forEach((node) => {
         this.handleRepoNode(node)
       })
+      this.totalProccesingTime += performance.now() - startProcessingTime
 
       if (response.rateLimit.remaining <= 0) {
         this.toast = 'ERROR: Reached Github Rate Limit'
@@ -158,6 +165,13 @@ class Loader {
         // Save the current time so we can show the
         // "You're all caught up" line next time
         localStorage.setItem('lastAccessedAt', new Date().toISOString())
+
+        console.log(
+          `Total Request Time: ${this.totalRequestTime.toFixed(2)} ms`,
+        )
+        console.log(
+          `Total Processing Time: ${this.totalProccesingTime.toFixed(2)} ms`,
+        )
       }
     } catch (error: unknown) {
       console.log(error)
