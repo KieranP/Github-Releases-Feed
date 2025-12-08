@@ -135,6 +135,15 @@ class Loader {
       this.retries = 0
       this.toast = ''
 
+      // Before we handle the results we just received, check if we have
+      // another page to fetch and begin requesting that now so we process
+      // things in parallel
+      const shouldContinue =
+        pageInfo.hasNextPage && response.rateLimit.remaining > 0
+      if (shouldContinue) {
+        void this.fetchReleases(pageInfo.endCursor)
+      }
+
       repoNodes.forEach((node) => {
         this.handleRepoNode(node)
       })
@@ -142,9 +151,7 @@ class Loader {
       if (response.rateLimit.remaining <= 0) {
         this.toast = 'ERROR: Reached Github Rate Limit'
         this.loading = false
-      } else if (pageInfo.hasNextPage) {
-        void this.fetchReleases(pageInfo.endCursor)
-      } else {
+      } else if (!shouldContinue) {
         // All releases have finished loading
         this.loading = false
 
