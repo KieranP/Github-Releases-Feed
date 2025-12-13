@@ -101,9 +101,9 @@ export interface GithubRepository {
       name: string
     }>
   }
-  licenseInfo: {
+  licenseInfo?: {
     spdxId: string
-  }
+  } | null
   name: string
   owner: {
     avatarUrl: string
@@ -113,7 +113,7 @@ export interface GithubRepository {
   primaryLanguage?: {
     id: string
     name: string
-  }
+  } | null
   releases: {
     nodes: GithubRelease[]
   }
@@ -127,7 +127,7 @@ export interface GithubReposResponse {
       totalCount: number
       pageInfo: {
         startCursor: string
-        hasPreviousPage: string
+        hasPreviousPage: boolean
         endCursor: string
         hasNextPage: boolean
       }

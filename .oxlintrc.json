@@ -9,14 +9,17 @@
     "perf": "error",
     "restriction": "error",
     "style": "error",
-    "suspicious": "error"
+    "suspicious": "error",
   },
   "rules": {
+    "eslint/capitalized-comments": "off",
     "eslint/curly": "off",
     "eslint/func-style": ["error", "declaration"],
     "eslint/id-length": "off",
     "eslint/max-lines-per-function": "off",
+    "eslint/max-statements": "off",
     "eslint/no-console": "off",
+    "eslint/no-inline-comments": "off",
     "eslint/no-magic-numbers": "off",
     "eslint/no-restricted-imports": ["error", { "patterns": ["~/*", "@/*"] }],
     "eslint/no-ternary": "off",
@@ -47,21 +50,21 @@
     "unicorn/no-array-for-each": "off",
     "unicorn/no-array-reduce": "off",
     "unicorn/no-null": "off",
-    "unicorn/no-useless-undefined": "off"
+    "unicorn/no-useless-undefined": "off",
   },
   "overrides": [
     {
       "files": ["**/*.svelte", "**/*.svelte.ts"],
       "globals": {
         "$derived": "readonly",
-        "$state": "readonly"
-      }
+        "$state": "readonly",
+      },
     },
     {
       "files": ["**/*.svelte"],
       "globals": {
         "$effect": "readonly",
-        "$props": "readonly"
+        "$props": "readonly",
       },
       "rules": {
         // OxLint doesn't evaluate the HTML portion of Svelte files (yet).
@@ -74,12 +77,12 @@
         // When an imported component is used as a type specifier in the TS
         // portion, OxLint throws the following error:
         // "All imports in the declaration are only used as types. Use `import type`."
-        "typescript/consistent-type-imports": "off"
-      }
-    }
+        "typescript/consistent-type-imports": "off",
+      },
+    },
   ],
   "env": {
     "builtin": true,
-    "browser": true
-  }
+    "browser": true,
+  },
 }
