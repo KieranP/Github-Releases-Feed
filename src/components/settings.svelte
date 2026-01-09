@@ -19,11 +19,11 @@
   }
 
   function toggleDarkMode(): void {
-    document.body.classList.toggle('dark-mode')
+    document.documentElement.classList.toggle('dark-mode')
 
     saveBooleanSetting(
       'darkMode',
-      document.body.classList.contains('dark-mode'),
+      document.documentElement.classList.contains('dark-mode'),
     )
   }
 

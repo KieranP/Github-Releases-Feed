@@ -17,7 +17,7 @@
   --release-description-pre-background-color: #818b981f;
   --svg-fill-color: var(--body-font-color);
 
-  body.dark-mode {
+  &.dark-mode {
     --body-background-color: #050505;
     --body-font-color: #cccccc;
     --box-background-color: #020202;

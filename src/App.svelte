@@ -53,7 +53,7 @@
 
   onMount((): void => {
     if (settings.darkMode) {
-      document.body.classList.add('dark-mode')
+      document.documentElement.classList.add('dark-mode')
     }
 
     if (settings.githubToken !== null) {
