@@ -37,7 +37,8 @@
   }
 }
 
-body {
+body,
+[popover] {
   background-color: var(--body-background-color);
   font-family: Helvetica, Arial, sans-serif;
   color: var(--body-font-color);

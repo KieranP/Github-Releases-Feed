@@ -12,11 +12,7 @@
 
   let { ondebug, onlogout }: Props = $props()
 
-  let settingsOpen = $state(false)
-
-  function toggleSettings(): void {
-    settingsOpen = !settingsOpen
-  }
+  let popoverElement: HTMLDivElement | undefined = $state()
 
   function toggleDarkMode(): void {
     document.documentElement.classList.toggle('dark-mode')
@@ -38,7 +34,7 @@
 
 <div id="settings_btn">
   <button
-    onclick={toggleSettings}
+    popovertarget="settings-popover"
     type="button"
   >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -64,125 +60,127 @@
   </button>
 </div>
 
-{#if settingsOpen}
-  <div id="settings">
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.expandDescriptions,
-            (v: boolean): void => {
-              saveBooleanSetting('expandDescriptions', v)
-            }
+<div
+  bind:this={popoverElement}
+  id="settings-popover"
+  popover
+>
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.expandDescriptions,
+          (v: boolean): void => {
+            saveBooleanSetting('expandDescriptions', v)
           }
-        />
-        Expand Descriptions
-      </label>
-    </div>
-
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.hidePrereleases,
-            (v: boolean): void => {
-              saveBooleanSetting('hidePrereleases', v)
-            }
-          }
-        />
-        Hide All Prereleases
-      </label>
-    </div>
-
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.hidePreviouslySeen,
-            (v: boolean): void => {
-              saveBooleanSetting('hidePreviouslySeen', v)
-            }
-          }
-        />
-        Hide Previously Seen
-      </label>
-    </div>
-
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.showIgnoredRepos,
-            (v: boolean): void => {
-              saveBooleanSetting('showIgnoredRepos', v)
-            }
-          }
-        />
-        Show Ignored Repositories
-      </label>
-    </div>
-
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.showIgnoredPrereleases,
-            (v: boolean): void => {
-              saveBooleanSetting('showIgnoredPrereleases', v)
-            }
-          }
-        />
-        Show Ignored Prereleases
-      </label>
-    </div>
-
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          bind:checked={
-            (): boolean => settings.showLanguages,
-            (v: boolean): void => {
-              saveBooleanSetting('showLanguages', v)
-            }
-          }
-        />
-        Show Languages
-      </label>
-    </div>
-
-    <div id="buttons">
-      <button
-        onclick={(): void => {
-          ondebug()
-        }}
-        type="button">Debug</button
-      >
-
-      <button
-        onclick={(): void => {
-          void db?.clear('descriptions')
-        }}
-        type="button">Clear Cache</button
-      >
-
-      {#if settings.githubToken}
-        <button
-          onclick={(): void => {
-            onlogout()
-            toggleSettings()
-          }}
-          type="button">Logout</button
-        >
-      {/if}
-    </div>
+        }
+      />
+      Expand Descriptions
+    </label>
   </div>
-{/if}
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.hidePrereleases,
+          (v: boolean): void => {
+            saveBooleanSetting('hidePrereleases', v)
+          }
+        }
+      />
+      Hide All Prereleases
+    </label>
+  </div>
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.hidePreviouslySeen,
+          (v: boolean): void => {
+            saveBooleanSetting('hidePreviouslySeen', v)
+          }
+        }
+      />
+      Hide Previously Seen
+    </label>
+  </div>
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.showIgnoredRepos,
+          (v: boolean): void => {
+            saveBooleanSetting('showIgnoredRepos', v)
+          }
+        }
+      />
+      Show Ignored Repositories
+    </label>
+  </div>
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.showIgnoredPrereleases,
+          (v: boolean): void => {
+            saveBooleanSetting('showIgnoredPrereleases', v)
+          }
+        }
+      />
+      Show Ignored Prereleases
+    </label>
+  </div>
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.showLanguages,
+          (v: boolean): void => {
+            saveBooleanSetting('showLanguages', v)
+          }
+        }
+      />
+      Show Languages
+    </label>
+  </div>
+
+  <div id="buttons">
+    <button
+      onclick={(): void => {
+        ondebug()
+      }}
+      type="button">Debug</button
+    >
+
+    <button
+      onclick={(): void => {
+        void db?.clear('descriptions')
+      }}
+      type="button">Clear Cache</button
+    >
+
+    {#if settings.githubToken}
+      <button
+        onclick={(): void => {
+          onlogout()
+          popoverElement?.hidePopover()
+        }}
+        type="button">Logout</button
+      >
+    {/if}
+  </div>
+</div>
 
 <style>
   #settings_btn {
@@ -208,11 +206,9 @@
     }
   }
 
-  #settings {
-    position: fixed;
-    top: 20px;
-    right: 50px;
-    z-index: 100;
+  #settings-popover {
+    position-area: span-bottom left;
+    margin-right: 10px;
     width: 300px;
     padding: 20px;
     border: 1px solid var(--box-border-color);
