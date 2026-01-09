@@ -15,7 +15,7 @@
 
   const { release }: Props = $props()
 
-  let popoverElement: HTMLDivElement | undefined = $state()
+  let menuOpen = $state(false)
 
   const data = $derived(release.data)
   const repo = $derived(data.repo)
@@ -39,20 +39,20 @@
     }
   }
 
-  function closeMenu(): void {
-    popoverElement?.hidePopover()
+  function toggleMenu(): void {
+    menuOpen = !menuOpen
   }
 
   function ignoreRepo(): void {
     settings.ignoredRepos.add(repo.fullName)
     persistIgnoredRepos()
-    closeMenu()
+    toggleMenu()
   }
 
   function unignoreRepo(): void {
     settings.ignoredRepos.delete(repo.fullName)
     persistIgnoredRepos()
-    closeMenu()
+    toggleMenu()
   }
 
   function persistIgnoredRepos(): void {
@@ -65,13 +65,13 @@
   function ignorePrerelease(): void {
     settings.ignoredPrereleases.add(repo.fullName)
     persistIgnoredPrereleases()
-    closeMenu()
+    toggleMenu()
   }
 
   function unignorePrerelease(): void {
     settings.ignoredPrereleases.delete(repo.fullName)
     persistIgnoredPrereleases()
-    closeMenu()
+    toggleMenu()
   }
 
   function persistIgnoredPrereleases(): void {
@@ -177,7 +177,7 @@
 
     <div class="options">
       <button
-        popovertarget="release-menu-{data.id}"
+        onclick={toggleMenu}
         type="button"
       >
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -186,38 +186,35 @@
     </div>
   </div>
 
-  <div
-    bind:this={popoverElement}
-    id="release-menu-{data.id}"
-    class="menu"
-    popover
-  >
-    {#if release.isIgnoredRepo}
-      <button
-        onclick={unignoreRepo}
-        type="button">Unignore all releases from this repo</button
-      >
-    {:else}
-      <button
-        onclick={ignoreRepo}
-        type="button">Ignore all releases from this repo</button
-      >
-    {/if}
-
-    {#if !release.isIgnoredRepo}
-      {#if release.isIgnoredPrerelease}
+  {#if menuOpen}
+    <div class="menu">
+      {#if release.isIgnoredRepo}
         <button
-          onclick={unignorePrerelease}
-          type="button">Unignore prereleases from this repo</button
+          onclick={unignoreRepo}
+          type="button">Unignore all releases from this repo</button
         >
       {:else}
         <button
-          onclick={ignorePrerelease}
-          type="button">Ignore prereleases from this repo</button
+          onclick={ignoreRepo}
+          type="button">Ignore all releases from this repo</button
         >
       {/if}
-    {/if}
-  </div>
+
+      {#if !release.isIgnoredRepo}
+        {#if release.isIgnoredPrerelease}
+          <button
+            onclick={unignorePrerelease}
+            type="button">Unignore prereleases from this repo</button
+          >
+        {:else}
+          <button
+            onclick={ignorePrerelease}
+            type="button">Ignore prereleases from this repo</button
+          >
+        {/if}
+      {/if}
+    </div>
+  {/if}
 
   <div class="name">
     <a
@@ -376,8 +373,10 @@
     }
 
     .menu {
-      position-area: bottom span-left;
-      margin-top: 10px;
+      position: absolute;
+      top: 50px;
+      right: 20px;
+      z-index: 100;
       width: 300px;
       border: 1px solid var(--box-border-color);
       border-radius: var(--box-border-radius);
