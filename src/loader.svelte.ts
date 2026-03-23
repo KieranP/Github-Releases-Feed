@@ -41,6 +41,7 @@ class Loader {
   private firstReleaseBeforeLastAccessed: Release | undefined = undefined
 
   private releases = $state<Release[]>([])
+  private releasesIndex = new Map<string, Release>()
 
   public groups: ReleaseGroup[] = $derived.by(() => {
     const groups: ReleaseGroup[] = []
@@ -98,6 +99,7 @@ class Loader {
     this.totalRepos = 0
     this.reposProcessed = 0
     this.releases = []
+    this.releasesIndex = new Map()
   }
 
   private async fetchReleases(cursor: string | null = null): Promise<void> {
@@ -227,6 +229,11 @@ class Loader {
     if (releases.length > 0) {
       sortSplice(this.releases, releases, this.releaseSortFn)
 
+      // Used by attachReleaseDescription
+      for (const release of releases) {
+        this.releasesIndex.set(release.data.id, release)
+      }
+
       this.firstReleaseBeforeLastAccessed = this.releases.find(
         (r): boolean => r.data.publishedAt <= lastAccessedAt,
       )
@@ -285,7 +292,7 @@ class Loader {
     releaseId: string,
     description: string,
   ): void {
-    const release = this.releases.find((r): boolean => r.data.id === releaseId)
+    const release = this.releasesIndex.get(releaseId)
 
     if (release) {
       release.data.descriptionHTML = description
