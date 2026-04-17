@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { intlFormat, intlFormatDistance } from 'date-fns'
-
   import ignoredSvg from '../assets/ignored.svg?raw'
   import loadingSvg from '../assets/loading.svg?raw'
   import threeDotsSvg from '../assets/three-dots.svg?raw'
-  import { intersectionObserver, starsFormatter } from '../helpers'
+  import {
+    dateTimeFormatter,
+    formatRelativeTime,
+    intersectionObserver,
+    starsFormatter,
+  } from '../helpers'
   import { settings } from '../state.svelte'
 
   import type { Release } from '../models/release.svelte'
@@ -153,16 +156,9 @@
 
       <div
         class="time"
-        title={intlFormat(data.publishedAt, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          timeZoneName: 'short',
-        })}
+        title={dateTimeFormatter.format(data.publishedAt)}
       >
-        {intlFormatDistance(data.publishedAt, new Date())}
+        {formatRelativeTime(data.publishedAt, new Date())}
       </div>
     </div>
 
