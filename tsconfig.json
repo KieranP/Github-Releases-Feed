@@ -10,6 +10,7 @@
     "types": ["vite/client", "svelte"],
 
     // Emit
+    "noEmit": true,
     "sourceMap": true,
 
     // Interop
@@ -37,6 +38,7 @@
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,

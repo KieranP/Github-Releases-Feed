@@ -23,6 +23,7 @@ const config: OxlintConfig = defineConfig({
     'eslint/curly': 'off',
     'eslint/func-style': ['error', 'declaration'],
     'eslint/id-length': 'off',
+    'eslint/max-lines': 'off',
     'eslint/max-lines-per-function': 'off',
     'eslint/max-statements': 'off',
     'eslint/no-console': 'off',
