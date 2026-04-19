@@ -50,25 +50,23 @@ class Loader {
 
     for (const release of this.releases) {
       const repo = release.data.repo.fullName
+      const isLastSeen = lastSeenId === release.data.id
 
-      if (currentGroup && currentGroup.repo !== repo) {
-        currentGroup.showCaughtUp = currentGroup.releases.some(
-          (r) => lastSeenId === r.data.id,
-        )
-
+      if (currentGroup && (currentGroup.repo !== repo || isLastSeen)) {
         groups.push(currentGroup)
-        currentGroup = new ReleaseGroup(repo)
+        currentGroup = null
       }
 
       currentGroup ??= new ReleaseGroup(repo)
+
+      if (isLastSeen) {
+        currentGroup.showCaughtUp = true
+      }
+
       currentGroup.releases.push(release)
     }
 
     if (currentGroup) {
-      currentGroup.showCaughtUp = currentGroup.releases.some(
-        (r) => lastSeenId === r.data.id,
-      )
-
       groups.push(currentGroup)
     }
 
