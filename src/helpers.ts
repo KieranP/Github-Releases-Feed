@@ -50,30 +50,36 @@ export const starsFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
   notation: 'compact',
 })
 
-export function sortSplice<T>(
-  existing: T[],
+export function mergeSorted<T>(
+  existing: readonly T[],
   newItems: T[],
   sortFn: (a: T, b: T) => number,
 ): T[] {
+  if (existing.length === 0) return newItems
+
+  const result = [...existing]
+  if (newItems.length === 0) return result
+
   newItems.sort(sortFn)
 
-  let searchIndex = 0
-  for (const item of newItems) {
-    let inserted = false
-    for (let i = searchIndex; i < existing.length; i += 1) {
-      const current = existing[i]
-      if (current !== undefined && sortFn(item, current) <= 0) {
-        existing.splice(i, 0, item)
-        searchIndex = i + 1
-        inserted = true
-        break
+  let searchEnd = result.length
+  for (let i = newItems.length - 1; i >= 0; i -= 1) {
+    const item = newItems[i] as T
+    let low = 0
+    let high = searchEnd
+
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2)
+      if (sortFn(result[mid] as T, item) <= 0) {
+        low = mid + 1
+      } else {
+        high = mid
       }
     }
-    if (!inserted) {
-      existing.push(item)
-      searchIndex = existing.length
-    }
+
+    result.splice(low, 0, item)
+    searchEnd = low
   }
 
-  return existing
+  return result
 }

@@ -12,7 +12,7 @@ import {
   type GithubReposResponse,
   reposQuery,
 } from './github'
-import { sortSplice } from './helpers'
+import { mergeSorted } from './helpers'
 import { Release } from './models/release.svelte'
 import { ReleaseGroup } from './models/release_group.svelte'
 import { lastAccessedAt, settings } from './state.svelte'
@@ -150,9 +150,7 @@ class Loader {
       }
 
       const startProcessingTime = performance.now()
-      repoNodes.forEach((node) => {
-        this.handleRepoNode(node)
-      })
+      this.processPage(repoNodes)
       this.totalProccesingTime += performance.now() - startProcessingTime
 
       if (response.rateLimit.remaining <= 0) {
@@ -202,33 +200,24 @@ class Loader {
     }
   }
 
-  private handleRepoNode(repoNode: GithubRepository): void {
-    const { releases: releaseData, ...repoData } = repoNode
-    const releaseNodes = releaseData.nodes
+  private processPage(repoNodes: GithubRepository[]): void {
+    const pageReleases: Release[] = []
 
-    const fullName = `${repoData.owner.login}/${repoData.name}`
-    const repo = { ...repoData, fullName }
-
-    const releases = releaseNodes.reduce<Release[]>((result, releaseNode) => {
-      const publishedAt = new Date(releaseNode.publishedAt)
-      if (publishedAt >= startingDate) {
-        const release = new Release({
-          repo,
-          ...releaseNode,
-          publishedAt,
-        })
-
-        result.push(release)
+    for (const node of repoNodes) {
+      const releases = this.extractReleases(node)
+      if (releases.length > 0) {
+        pageReleases.push(...releases)
       }
+    }
 
-      return result
-    }, [])
+    if (pageReleases.length > 0) {
+      this.releases = mergeSorted(
+        this.releases,
+        pageReleases,
+        this.releaseSortFn,
+      )
 
-    if (releases.length > 0) {
-      sortSplice(this.releases, releases, this.releaseSortFn)
-
-      // Used by attachReleaseDescription
-      for (const release of releases) {
+      for (const release of pageReleases) {
         this.releasesIndex.set(release.data.id, release)
       }
 
@@ -236,10 +225,32 @@ class Loader {
         (r): boolean => r.data.publishedAt <= lastAccessedAt,
       )
 
-      void this.fetchReleaseDescriptions(releases)
+      void this.fetchReleaseDescriptions(pageReleases)
     }
 
-    this.reposProcessed += 1
+    this.reposProcessed += repoNodes.length
+  }
+
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  private extractReleases(repoNode: GithubRepository): Release[] {
+    const { releases: releaseData, ...repoData } = repoNode
+    const releaseNodes = releaseData.nodes
+
+    const fullName = `${repoData.owner.login}/${repoData.name}`
+    const repo = { ...repoData, fullName }
+
+    return releaseNodes.reduce<Release[]>((result, releaseNode) => {
+      const publishedAt = new Date(releaseNode.publishedAt)
+      if (publishedAt >= startingDate) {
+        const release = new Release({
+          repo,
+          ...releaseNode,
+          publishedAt,
+        })
+        result.push(release)
+      }
+      return result
+    }, [])
   }
 
   // eslint-disable-next-line @typescript-eslint/class-methods-use-this
@@ -269,21 +280,36 @@ class Loader {
 
     if (uncachedReleaseIds.length === 0) return
 
-    const response = await this.octokit.graphql<
-      GithubReleaseResponse | undefined
-    >(descriptionQuery, { releaseIds: uncachedReleaseIds })
+    const batchSize = 20
+    const batches: string[][] = []
+    for (let i = 0; i < uncachedReleaseIds.length; i += batchSize) {
+      batches.push(uncachedReleaseIds.slice(i, i + batchSize))
+    }
 
-    if (!response) return
+    await Promise.all(
+      batches.map(async (batchIds): Promise<void> => {
+        if (!this.octokit) return
 
-    response.nodes.forEach((releaseNode): void => {
-      void db?.put(
-        'descriptions',
-        releaseNode.descriptionHTML,
-        `${releaseNode.id}-${releaseNode.updatedAt}`,
-      )
+        const response = await this.octokit.graphql<
+          GithubReleaseResponse | undefined
+        >(descriptionQuery, { releaseIds: batchIds })
 
-      this.attachReleaseDescription(releaseNode.id, releaseNode.descriptionHTML)
-    })
+        if (!response) return
+
+        response.nodes.forEach((releaseNode): void => {
+          void db?.put(
+            'descriptions',
+            releaseNode.descriptionHTML,
+            `${releaseNode.id}-${releaseNode.updatedAt}`,
+          )
+
+          this.attachReleaseDescription(
+            releaseNode.id,
+            releaseNode.descriptionHTML,
+          )
+        })
+      }),
+    )
   }
 
   private attachReleaseDescription(

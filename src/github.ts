@@ -82,7 +82,7 @@ export const descriptionQuery = /* GraphQL */ `
   }
 `
 
-export interface GithubRelease {
+interface GithubRelease {
   id: string
   isDraft: boolean
   isPrerelease: boolean
