@@ -84,10 +84,17 @@
     )
   }
 
-  function calculateHeight(element: HTMLDivElement): void {
-    if (data.descriptionHTML !== undefined) {
-      const rect = element.getBoundingClientRect()
-      release.descriptionHeight = rect.height
+  function observeSize(element: HTMLDivElement): () => void {
+    release.descriptionHeight = element.scrollHeight
+
+    const observer = new ResizeObserver(() => {
+      release.descriptionHeight = element.scrollHeight
+    })
+
+    observer.observe(element)
+
+    return () => {
+      observer.disconnect()
     }
   }
 
@@ -237,7 +244,7 @@
     <div
       class="description"
       class:truncated={release.descriptionIsTruncated}
-      {@attach calculateHeight}
+      {@attach observeSize}
     >
       {#if data.descriptionHTML !== undefined}
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
