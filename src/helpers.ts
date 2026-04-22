@@ -58,21 +58,22 @@ export function mergeSorted<T>(
   newItems: T[],
   sortFn: (a: T, b: T) => number,
 ): T[] {
+  newItems.sort(sortFn)
+
   if (existing.length === 0) return newItems
 
   const result = [...existing]
   if (newItems.length === 0) return result
 
-  newItems.sort(sortFn)
+  let searchStart = 0
 
-  let searchEnd = result.length
-  for (let i = newItems.length - 1; i >= 0; i -= 1) {
-    const item = newItems[i] as T
-    let low = 0
-    let high = searchEnd
+  for (const item of newItems) {
+    let low = searchStart
+    let high = result.length
 
     while (low < high) {
-      const mid = Math.floor((low + high) / 2)
+      // eslint-disable-next-line no-bitwise
+      const mid = (low + high) >>> 1
       if (sortFn(result[mid] as T, item) <= 0) {
         low = mid + 1
       } else {
@@ -81,7 +82,7 @@ export function mergeSorted<T>(
     }
 
     result.splice(low, 0, item)
-    searchEnd = low
+    searchStart = low + 1
   }
 
   return result
