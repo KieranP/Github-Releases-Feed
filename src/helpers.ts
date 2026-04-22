@@ -61,9 +61,9 @@ export function mergeSorted<T>(
   newItems.sort(sortFn)
 
   if (existing.length === 0) return newItems
+  if (newItems.length === 0) return existing as T[]
 
   const result = [...existing]
-  if (newItems.length === 0) return result
 
   let searchStart = 0
 
