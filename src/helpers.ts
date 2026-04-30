@@ -37,10 +37,16 @@ const RELATIVE_TIME_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
 
 export function formatRelativeTime(date: Date, now: Date): string {
   const diffMs = date.getTime() - now.getTime()
+  const absDiffMs = Math.abs(diffMs)
+  const decimalUnits = new Set(['year', 'month', 'week'])
 
   for (const [unit, ms] of RELATIVE_TIME_UNITS) {
-    if (Math.abs(diffMs) >= ms) {
-      return relativeTimeFormatter.format(Math.round(diffMs / ms), unit)
+    if (absDiffMs >= ms) {
+      const value = diffMs / ms
+      const roundedValue = decimalUnits.has(unit)
+        ? Math.round(value * 10) / 10 // round to 1 decimal place
+        : Math.round(value) // round to whole number
+      return relativeTimeFormatter.format(roundedValue, unit)
     }
   }
 

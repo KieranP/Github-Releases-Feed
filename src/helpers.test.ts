@@ -168,33 +168,78 @@ describe('formatRelativeTime', () => {
 
   it.each([
     { label: 'identical dates', date: now, expected: 'in 0 seconds' },
+
+    // Past Dates
     { label: '30s ago', date: ago(30 * SECOND), expected: '30 seconds ago' },
-    { label: 'in 30s', date: fromNow(30 * SECOND), expected: 'in 30 seconds' },
     { label: '1 minute ago', date: ago(MINUTE), expected: '1 minute ago' },
     {
       label: '5 minutes ago',
       date: ago(5 * MINUTE),
       expected: '5 minutes ago',
     },
+    { label: '1 hour ago', date: ago(HOUR), expected: '1 hour ago' },
+    { label: '3 hours ago', date: ago(3 * HOUR), expected: '3 hours ago' },
+    { label: '1 day ago', date: ago(DAY), expected: '1 day ago' },
+    { label: '2 days ago', date: ago(2 * DAY), expected: '2 days ago' },
+    {
+      label: '10 days ago shows decimal weeks',
+      date: ago(10 * DAY),
+      expected: '1.4 weeks ago',
+    },
+    { label: '2 weeks ago', date: ago(2 * WEEK), expected: '2 weeks ago' },
+    {
+      label: '2.5 weeks ago',
+      date: ago(2.5 * WEEK),
+      expected: '2.5 weeks ago',
+    },
+    { label: '3 months ago', date: ago(3 * MONTH), expected: '3 months ago' },
+    {
+      label: '3.3 months ago',
+      date: ago(3.3 * MONTH),
+      expected: '3.3 months ago',
+    },
+    { label: '2 years ago', date: ago(2 * YEAR), expected: '2 years ago' },
+    {
+      label: '2.7 years ago',
+      date: ago(2.7 * YEAR),
+      expected: '2.7 years ago',
+    },
+
+    // Future Dates
+    { label: 'in 30s', date: fromNow(30 * SECOND), expected: 'in 30 seconds' },
+    { label: 'in 1 minute', date: fromNow(MINUTE), expected: 'in 1 minute' },
     {
       label: 'in 5 minutes',
       date: fromNow(5 * MINUTE),
       expected: 'in 5 minutes',
     },
-    { label: '1 hour ago', date: ago(HOUR), expected: '1 hour ago' },
-    { label: '3 hours ago', date: ago(3 * HOUR), expected: '3 hours ago' },
+    { label: 'in 1 hour', date: fromNow(HOUR), expected: 'in 1 hour' },
     { label: 'in 3 hours', date: fromNow(3 * HOUR), expected: 'in 3 hours' },
-    { label: '1 day ago', date: ago(DAY), expected: '1 day ago' },
-    { label: '2 days ago', date: ago(2 * DAY), expected: '2 days ago' },
+    { label: 'in 1 day', date: fromNow(DAY), expected: 'in 1 day' },
     { label: 'in 2 days', date: fromNow(2 * DAY), expected: 'in 2 days' },
     {
-      label: '1d23h rounds to 2 days',
-      date: ago(DAY + 23 * HOUR),
-      expected: '2 days ago',
+      label: 'in 10 days shows decimal weeks',
+      date: fromNow(10 * DAY),
+      expected: 'in 1.4 weeks',
     },
-    { label: '2 weeks ago', date: ago(2 * WEEK), expected: '2 weeks ago' },
-    { label: '3 months ago', date: ago(3 * MONTH), expected: '3 months ago' },
-    { label: '2 years ago', date: ago(2 * YEAR), expected: '2 years ago' },
+    { label: 'in 2 weeks', date: fromNow(2 * WEEK), expected: 'in 2 weeks' },
+    {
+      label: 'in 2.5 weeks',
+      date: fromNow(2.5 * WEEK),
+      expected: 'in 2.5 weeks',
+    },
+    { label: 'in 3 months', date: fromNow(3 * MONTH), expected: 'in 3 months' },
+    {
+      label: 'in 3.3 months',
+      date: fromNow(3.3 * MONTH),
+      expected: 'in 3.3 months',
+    },
+    { label: 'in 2 years', date: fromNow(2 * YEAR), expected: 'in 2 years' },
+    {
+      label: 'in 2.7 years',
+      date: fromNow(2.7 * YEAR),
+      expected: 'in 2.7 years',
+    },
   ])('$label → $expected', ({ date, expected }) => {
     expect(formatRelativeTime(date, now)).toBe(expected)
   })
