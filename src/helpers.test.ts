@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatRelativeTime, mergeSorted } from './helpers'
+import { chunk, formatRelativeTime, mergeSorted } from './helpers'
 
 interface Item {
   key: number
@@ -144,6 +144,42 @@ describe('mergeSorted', () => {
     const newItems = [-1, 1, 501, 999, 1999]
     const expected = [...existing, ...newItems].toSorted(numAsc)
     expect(mergeSorted(existing, newItems, numAsc)).toEqual(expected)
+  })
+})
+
+describe('chunk', () => {
+  it.each([
+    { label: 'empty', items: [], size: 3, expected: [] },
+    {
+      label: 'exact multiple',
+      items: [1, 2, 3, 4],
+      size: 2,
+      expected: [
+        [1, 2],
+        [3, 4],
+      ],
+    },
+    {
+      label: 'ragged final batch',
+      items: [1, 2, 3, 4, 5],
+      size: 2,
+      expected: [[1, 2], [3, 4], [5]],
+    },
+    {
+      label: 'size larger than length',
+      items: [1, 2],
+      size: 10,
+      expected: [[1, 2]],
+    },
+    {
+      label: 'size below 1 returns a single batch',
+      items: [1, 2],
+      size: 0,
+      expected: [[1, 2]],
+    },
+    { label: 'size below 1 with empty items', items: [], size: 0, expected: [] },
+  ])('$label', ({ items, size, expected }) => {
+    expect(chunk(items, size)).toEqual(expected)
   })
 })
 
