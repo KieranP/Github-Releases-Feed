@@ -1,52 +1,54 @@
 # Github Releases Feed Viewer
 
-A personalized activity feed of software releases for your starred GitHub repositories.
+A personalized activity feed of releases from your starred GitHub repositories — a way to keep up with software updates without checking repos by hand or fighting GitHub's activity feed.
 
-Designed to help developers keep up with software updates without manually checking repositories or relying on GitHub's broken activity feed.
-
-The Github Releases Feed Viewer is hosted at https://kieranp.github.io/Github-Releases-Feed/ , but you can also run it locally using the commands below.
+Hosted at https://kieranp.github.io/Github-Releases-Feed/, or run it locally with the commands below.
 
 ## Features
 
-- **Personalized Feed**: Fetches releases from your starred repositories via the GitHub GraphQL API.
-- **Smart Grouping**: Groups multiple releases from the same repository to reduce clutter.
-- **Filtering**: Options to hide pre-releases or ignore specific repositories without unstarring them.
-- **Dark Mode**: Full dark mode support based on system preference or user toggle.
+- **Personalized feed** — releases from the last month across your starred repos, via the GitHub GraphQL API.
+- **Incremental sync** — repos are cached locally and only refetched when they've actually changed, so later loads are much cheaper than the first.
+- **Grouping** — multiple releases from one repo are collapsed together, with a "You're All Caught Up" divider marking where you left off.
+- **Filtering** — hide pre-releases, hide releases you've seen, or ignore specific repos (or just their pre-releases) without unstarring them.
+- **Release notes** — rendered inline, collapsed by default, expandable per release or globally.
+- **Dark mode** — follows system preference, with a manual toggle.
 
 ## Authentication
 
-This application requires a GitHub Personal Access Token (PAT) to fetch data.
+You need a GitHub Personal Access Token:
 
-The token and all data fetched via the Github API are stored in your browsers local storage; **NO data ever leaves your computer**!
+1. Generate a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new?name=Github+Releases+Feed&expires_in=none&starring=read).
+2. Enter it into the application.
 
-1. Generate a [Fine-grained Personal Access Token](https://github.com/settings/personal-access-tokens/new?name=Github+Releases+Feed&expires_in=none&starring=read).
-2. Enter the token into the application.
+The token and settings live in local storage, cached repository data in IndexedDB — **no data ever leaves your computer**.
 
-## Local Development
+Settings popover controls:
+
+- **Clear Cache** — wipe the local caches and reload from GitHub.
+- **Logout** — the same, plus removing the token.
+- **Disable Repo Cache** — skip the incremental sync and refetch every starred repo in full on each load. Slower and far heavier on your rate limit, but useful if you suspect the cache is stale. Descriptions stay cached either way.
+
+## Development
 
 ```bash
-# Running
 pnpm install
 pnpm dev --open
 
-# Type Checking, Linting, and Formatting
-pnpm types
-pnpm lint
+pnpm types    # tsc + svelte-check
+pnpm lint     # oxlint + eslint
 pnpm format
+pnpm test
 ```
 
-## Production Build
+## Production build
 
 ```bash
-pnpm install
 pnpm build
 pnpx serve dist
 ```
 
+`dist/` is committed — the GitHub Pages workflow deploys it as-is rather than building, so run `pnpm build` and commit the result before pushing to `main`.
+
 ## License
 
-This project is licensed under the GNU General Public License v3.0.
-
-In short, you can use this repository as you see fit, but if you make any changes to the code, please open source them under the same license.
-
-See the [LICENSE](LICENSE) file for more details.
+GNU General Public License v3.0 — use this repository as you see fit, but open source any changes under the same license. See [LICENSE](LICENSE) for details.

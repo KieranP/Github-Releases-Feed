@@ -39,26 +39,28 @@ applyColorScheme(darkMode)
 
 export const settings: {
   darkMode: boolean
+  disableCache: boolean
   expandDescriptions: boolean
   githubToken: string | null
   hidePrereleases: boolean
   hidePreviouslySeen: boolean
   ignoredPrereleases: Set<string>
   ignoredRepos: Set<string>
+  lastAccessedAt: Date
   showIgnoredPrereleases: boolean
   showIgnoredRepos: boolean
   showLanguages: boolean
 } = $state({
   darkMode,
+  disableCache: fetchAsBool('disableCache'),
   expandDescriptions: fetchAsBool('expandDescriptions'),
   githubToken: localStorage.getItem('githubToken'),
   hidePrereleases: fetchAsBool('hidePrereleases'),
   hidePreviouslySeen: fetchAsBool('hidePreviouslySeen'),
   ignoredPrereleases: fetchAsSet('ignoredPrereleases'),
   ignoredRepos: fetchAsSet('ignoredRepos'),
+  lastAccessedAt: fetchAsDate('lastAccessedAt') ?? new Date(0),
   showIgnoredPrereleases: fetchAsBool('showIgnoredPrereleases'),
   showIgnoredRepos: fetchAsBool('showIgnoredRepos'),
   showLanguages: fetchAsBool('showLanguages'),
 })
-
-export const lastAccessedAt: Date = fetchAsDate('lastAccessedAt') ?? new Date(0)

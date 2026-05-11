@@ -7,7 +7,7 @@
   import Settings from './components/settings.svelte'
   import Toast from './components/toast.svelte'
   import { loader } from './loader.svelte'
-  import { lastAccessedAt, settings } from './state.svelte'
+  import { settings } from './state.svelte'
 
   const loading = $derived(loader.loading)
   const progress = $derived(loader.progress)
@@ -43,7 +43,6 @@
         toast,
         settings: {
           ...settings,
-          lastAccessedAt,
           githubToken: settings.githubToken?.slice(0, 11),
         },
         groups: releaseGroups.map((g) => g.dump()),
