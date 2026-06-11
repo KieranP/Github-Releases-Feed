@@ -1,5 +1,4 @@
 import eslint from '@eslint/js'
-import eslintPrettier from 'eslint-config-prettier'
 import eslintSvelte from 'eslint-plugin-svelte'
 import { defineConfig } from 'eslint/config'
 // import oxlint from 'eslint-plugin-oxlint'

@@ -6,59 +6,58 @@
   // File Scan/Search
   "file_scan_exclusions": [".git/", ".DS_Store", "dist/"],
 
-  // Extensions
-  "auto_install_extensions": {
-    "html": true,
-    "svelte": true,
-    "tsgo": true
-  },
-
   // Language / LSP
-  "file_types": {
-    "JSON": [".prettierrc"],
-    "JSONC": [".oxlintrc.json"]
-  },
   "languages": {
+    "HTML": {
+      "formatter": [
+        {
+          "external": {
+            "command": "pnpm",
+            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
+          },
+        },
+      ],
+    },
     "JavaScript": {
       "language_servers": ["tsgo", "vtsls"],
       "formatter": [
         {
-          "code_action": "source.fixAll.eslint"
+          "code_action": "source.fixAll.eslint",
         },
         {
           "external": {
             "command": "pnpm",
-            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
-          }
-        }
-      ]
+            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
+          },
+        },
+      ],
     },
     "Svelte": {
       "formatter": [
         {
-          "code_action": "source.fixAll.eslint"
+          "code_action": "source.fixAll.eslint",
         },
         {
           "external": {
             "command": "pnpm",
-            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
-          }
-        }
-      ]
+            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
+          },
+        },
+      ],
     },
     "TypeScript": {
       "language_servers": ["tsgo", "vtsls"],
       "formatter": [
         {
-          "code_action": "source.fixAll.eslint"
+          "code_action": "source.fixAll.eslint",
         },
         {
           "external": {
             "command": "pnpm",
-            "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"]
-          }
-        }
-      ]
-    }
-  }
+            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
+          },
+        },
+      ],
+    },
+  },
 }
