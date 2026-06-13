@@ -1,7 +1,7 @@
-export const reposQuery = /* GraphQL */ `
+export const reposManifestQuery = /* GraphQL */ `
   query ($cursor: String) {
     viewer {
-      starredRepositories(first: 20, after: $cursor) {
+      starredRepositories(first: 100, after: $cursor) {
         totalCount
         pageInfo {
           startCursor
@@ -11,44 +11,66 @@ export const reposQuery = /* GraphQL */ `
         }
 
         nodes {
-          description
-          languages(first: 100) {
-            nodes {
-              id
-              name
-            }
-          }
-          licenseInfo {
-            spdxId
-          }
+          id
           name
           owner {
-            avatarUrl
             login
-            url
           }
-          primaryLanguage {
+          updatedAt
+        }
+      }
+    }
+
+    rateLimit {
+      cost
+      limit
+      remaining
+      used
+      resetAt
+    }
+  }
+`
+
+export const reposByIdsQuery = /* GraphQL */ `
+  query ($repoIds: [ID!]!) {
+    nodes(ids: $repoIds) {
+      ... on Repository {
+        id
+        description
+        languages(first: 100) {
+          nodes {
             id
             name
           }
-          releases(
-            first: 100
-            orderBy: { field: CREATED_AT, direction: DESC }
-          ) {
-            nodes {
-              id
-              isDraft
-              isPrerelease
-              name
-              publishedAt
-              tagName
-              updatedAt
-              url
-            }
-          }
-          stargazerCount
+        }
+        licenseInfo {
+          spdxId
+        }
+        name
+        owner {
+          avatarUrl
+          login
           url
         }
+        primaryLanguage {
+          id
+          name
+        }
+        releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+          nodes {
+            id
+            isDraft
+            isPrerelease
+            name
+            publishedAt
+            tagName
+            updatedAt
+            url
+          }
+        }
+        stargazerCount
+        updatedAt
+        url
       }
     }
 
@@ -94,6 +116,7 @@ interface GithubRelease {
 }
 
 export interface GithubRepository {
+  id: string
   description: string
   languages: {
     nodes: Array<{
@@ -118,30 +141,48 @@ export interface GithubRepository {
     nodes: GithubRelease[]
   }
   stargazerCount: number
+  updatedAt: string
   url: string
 }
 
-export interface GithubReposResponse {
+interface RateLimit {
+  cost: number
+  limit: number
+  remaining: number
+  used: number
+  resetAt: string
+}
+
+interface PageInfo {
+  startCursor: string
+  hasPreviousPage: boolean
+  endCursor: string
+  hasNextPage: boolean
+}
+
+export interface GithubRepoManifestNode {
+  id: string
+  name: string
+  owner: { login: string }
+  updatedAt: string
+}
+
+export interface GithubReposManifestResponse {
   viewer: {
     starredRepositories: {
       totalCount: number
-      pageInfo: {
-        startCursor: string
-        hasPreviousPage: boolean
-        endCursor: string
-        hasNextPage: boolean
-      }
-      nodes: GithubRepository[]
+      pageInfo: PageInfo
+      nodes: GithubRepoManifestNode[]
     }
   }
+  rateLimit: RateLimit
+}
 
-  rateLimit: {
-    cost: number
-    limit: number
-    remaining: number
-    used: number
-    resetAt: string
-  }
+export interface GithubReposByIdsResponse {
+  // nodes(ids: ...) returns null at positions where the id can't be
+  // resolved (e.g. deleted/transferred/now-private repo).
+  nodes: Array<GithubRepository | null>
+  rateLimit: RateLimit
 }
 
 export interface GithubReleaseResponse {
@@ -149,15 +190,8 @@ export interface GithubReleaseResponse {
     id: string
     descriptionHTML: string
     updatedAt: string
-  }>
-
-  rateLimit: {
-    cost: number
-    limit: number
-    remaining: number
-    used: number
-    resetAt: string
-  }
+  } | null>
+  rateLimit: RateLimit
 }
 
 export type ReleaseObj = Omit<GithubRelease, 'publishedAt'> & {

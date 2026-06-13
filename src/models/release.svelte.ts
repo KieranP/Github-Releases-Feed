@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { lastAccessedAt, settings } from '../state.svelte'
+import { settings } from '../state.svelte'
 
 import type { ReleaseObj } from '../github'
 
@@ -47,7 +47,7 @@ export class Release {
 
     if (
       settings.hidePreviouslySeen &&
-      this.data.publishedAt <= lastAccessedAt
+      this.data.publishedAt <= settings.lastAccessedAt
     ) {
       return false
     }

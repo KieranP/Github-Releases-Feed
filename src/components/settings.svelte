@@ -2,7 +2,7 @@
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
-  import { db } from '../db'
+  import { clearCache } from '../db'
   import { settings } from '../state.svelte'
 
   interface Props {
@@ -165,7 +165,7 @@
 
     <button
       onclick={(): void => {
-        void db?.clear('descriptions')
+        void clearCache()
       }}
       type="button">Clear Cache</button
     >

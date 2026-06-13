@@ -38,6 +38,7 @@ export const settings: {
   hidePreviouslySeen: boolean
   ignoredPrereleases: Set<string>
   ignoredRepos: Set<string>
+  lastAccessedAt: Date
   showIgnoredPrereleases: boolean
   showIgnoredRepos: boolean
   showLanguages: boolean
@@ -49,9 +50,8 @@ export const settings: {
   hidePreviouslySeen: fetchAsBool('hidePreviouslySeen'),
   ignoredPrereleases: fetchAsSet('ignoredPrereleases'),
   ignoredRepos: fetchAsSet('ignoredRepos'),
+  lastAccessedAt: fetchAsDate('lastAccessedAt') ?? new Date(0),
   showIgnoredPrereleases: fetchAsBool('showIgnoredPrereleases'),
   showIgnoredRepos: fetchAsBool('showIgnoredRepos'),
   showLanguages: fetchAsBool('showLanguages'),
 })
-
-export const lastAccessedAt: Date = fetchAsDate('lastAccessedAt') ?? new Date(0)

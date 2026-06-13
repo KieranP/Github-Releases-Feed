@@ -59,6 +59,18 @@ export const starsFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
   notation: 'compact',
 })
 
+// Split an array into consecutive batches of at most `size` items.
+export function chunk<T>(items: readonly T[], size: number): T[][] {
+  // Guard `size < 1`: otherwise `i += size` never advances and loops forever.
+  if (size < 1) return items.length > 0 ? [[...items]] : []
+
+  const batches: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    batches.push(items.slice(i, i + size))
+  }
+  return batches
+}
+
 export function mergeSorted<T>(
   existing: readonly T[],
   newItems: T[],
