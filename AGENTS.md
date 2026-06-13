@@ -19,6 +19,7 @@ Personalized feed of GitHub releases for starred repos.
 - **Logic**: Business logic in `.svelte.ts` models, not components.
 - **TypeScript**: No `any`. Explicit return types required. Async = `Promise<T>`. Imports must have extensions.
 - **Styling**: Scoped CSS. Use vars from `src/global.css`.
+- **Comments**: Keep them short. Max 2 lines before a function/declaration; max 1 line inside a function.
 
 ## Verification & Commands
 

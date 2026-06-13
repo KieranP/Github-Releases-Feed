@@ -12,17 +12,15 @@
 
 <div id="releases">
   {#each releaseGroups as group (group.key)}
-    {@const { displayableReleases } = group}
-
     {#if group.showCaughtUp}
       <div id="caught_up">You're All Caught Up</div>
     {/if}
 
-    {#if displayableReleases.length > 0}
+    {#if group.releases.length > 0}
       {@const visibleReleases = group.expanded
-        ? displayableReleases
-        : displayableReleases.slice(0, 1)}
-      {@const hiddenCount = displayableReleases.length - 1}
+        ? group.releases
+        : group.releases.slice(0, 1)}
+      {@const hiddenCount = group.releases.length - 1}
 
       <div class="release_group">
         {#each visibleReleases as release (release.data.id)}

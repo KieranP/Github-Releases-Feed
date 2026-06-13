@@ -21,6 +21,10 @@ const now = new Date()
 const startingDate = new Date(now)
 startingDate.setMonth(now.getMonth() - 1)
 
+// Sentinel repo for the empty trailing "caught up" group. Not a valid
+// "owner/name", so its key can't collide with a real repo group.
+const CAUGHT_UP_GROUP_REPO = '__caught_up__'
+
 class Loader {
   public loading: boolean = $state(false)
   public toast: string = $state('')
@@ -38,29 +42,34 @@ class Loader {
     return new Octokit({ auth: settings.githubToken })
   })
 
-  private firstReleaseBeforeLastAccessed: Release | undefined = undefined
-
   private releases = $state<Release[]>([])
   private releasesIndex = new Map<string, Release>()
 
   public groups: ReleaseGroup[] = $derived.by(() => {
     const groups: ReleaseGroup[] = []
     let currentGroup: ReleaseGroup | null = null
-    const lastSeenId = this.firstReleaseBeforeLastAccessed?.data.id
+    let caughtUpDividerPlaced = false
 
     for (const release of this.releases) {
-      const repo = release.data.repo.fullName
-      const isLastSeen = lastSeenId === release.data.id
+      // Skip hidden releases before grouping so they don't split a repo's run.
+      if (!release.isDisplayable) continue
 
-      if (currentGroup && (currentGroup.repo !== repo || isLastSeen)) {
+      const repo = release.data.repo.fullName
+
+      // The divider goes above the first displayable previously-seen release.
+      const wasPreviouslySeen = release.data.publishedAt <= lastAccessedAt
+      const isCaughtUpBoundary = !caughtUpDividerPlaced && wasPreviouslySeen
+
+      if (currentGroup && (currentGroup.repo !== repo || isCaughtUpBoundary)) {
         groups.push(currentGroup)
         currentGroup = null
       }
 
       currentGroup ??= new ReleaseGroup(repo)
 
-      if (isLastSeen) {
+      if (isCaughtUpBoundary) {
         currentGroup.showCaughtUp = true
+        caughtUpDividerPlaced = true
       }
 
       currentGroup.releases.push(release)
@@ -68,6 +77,13 @@ class Loader {
 
     if (currentGroup) {
       groups.push(currentGroup)
+    }
+
+    // No inline divider but releases exist (first visit / all seen hidden): show it at the end.
+    if (!caughtUpDividerPlaced && this.releases.length > 0) {
+      const caughtUpGroup = new ReleaseGroup(CAUGHT_UP_GROUP_REPO)
+      caughtUpGroup.showCaughtUp = true
+      groups.push(caughtUpGroup)
     }
 
     return groups
@@ -135,14 +151,11 @@ class Loader {
 
       this.totalRepos ||= totalCount
 
-      // Since the request succeeded, reset the
-      // retries count and toast message
+      // Request succeeded: reset the retries count and toast message.
       this.retries = 0
       this.toast = ''
 
-      // Before we handle the results we just received, check if we have
-      // another page to fetch and begin requesting that now so we process
-      // things in parallel
+      // Start fetching the next page now so it processes in parallel.
       const shouldContinue =
         pageInfo.hasNextPage && response.rateLimit.remaining > 0
       if (shouldContinue) {
@@ -160,8 +173,7 @@ class Loader {
         // All releases have finished loading
         this.loading = false
 
-        // Save the current time so we can show the
-        // "You're all caught up" line next time
+        // Save the visit time to show the "caught up" line next time.
         localStorage.setItem('lastAccessedAt', new Date().toISOString())
 
         console.log(
@@ -220,10 +232,6 @@ class Loader {
       for (const release of pageReleases) {
         this.releasesIndex.set(release.data.id, release)
       }
-
-      this.firstReleaseBeforeLastAccessed = this.releases.find(
-        (r): boolean => r.data.publishedAt <= lastAccessedAt,
-      )
 
       void this.fetchReleaseDescriptions(pageReleases)
     }

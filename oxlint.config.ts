@@ -27,6 +27,7 @@ const config: OxlintConfig = defineConfig({
     'eslint/max-lines-per-function': 'off',
     'eslint/max-statements': 'off',
     'eslint/no-console': 'off',
+    'eslint/no-continue': 'off',
     'eslint/no-inline-comments': 'off',
     'eslint/no-magic-numbers': 'off',
     'eslint/no-restricted-imports': ['error', { patterns: ['~/*', '@/*'] }],

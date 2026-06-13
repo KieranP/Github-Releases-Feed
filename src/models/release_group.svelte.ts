@@ -14,10 +14,6 @@ export class ReleaseGroup {
     return this.repo + this.releases[0]?.data.id
   }
 
-  public get displayableReleases(): Release[] {
-    return this.releases.filter((r) => r.isDisplayable)
-  }
-
   public dump(): object {
     return {
       repo: this.repo,

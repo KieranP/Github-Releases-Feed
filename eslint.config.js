@@ -42,6 +42,7 @@ export default defineConfig(
       'max-lines-per-function': 'off',
       'max-statements': 'off',
       'no-console': 'off',
+      'no-continue': 'off',
       'no-inline-comments': 'off',
       'no-ternary': 'off',
       'no-undef-init': 'off',
