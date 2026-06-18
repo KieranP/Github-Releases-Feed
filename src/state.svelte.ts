@@ -30,6 +30,13 @@ const darkModePreferred = globalThis.matchMedia(
 const darkModeRaw = fetchAsBool('darkMode')
 const darkMode = darkModePreferred || darkModeRaw
 
+// Drives light-dark() in CSS; applied immediately to avoid a theme flash
+export function applyColorScheme(dark: boolean): void {
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+}
+
+applyColorScheme(darkMode)
+
 export const settings: {
   darkMode: boolean
   expandDescriptions: boolean

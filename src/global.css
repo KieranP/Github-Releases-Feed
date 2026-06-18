@@ -1,40 +1,25 @@
 :root {
-  --body-background-color: #fafafa;
-  --body-font-color: #333333;
-  --box-background-color: #fdfdfd;
-  --box-border-color: #cccccc;
+  /* Active scheme is set explicitly on documentElement to drive light-dark() */
+  color-scheme: light dark;
+
+  --body-background-color: light-dark(#fafafa, #050505);
+  --body-font-color: light-dark(#333333, #cccccc);
+  --box-background-color: light-dark(#fdfdfd, #020202);
+  --box-border-color: light-dark(#cccccc, #333333);
   --box-border-radius: 6px;
-  --box-hover-color: #f6f6f6;
-  --box-shadow: 0px 1px 1px #1f23280f, 0px 1px 3px #1f23280f;
-  --link-color-visited: #570987;
+  --box-hover-color: light-dark(#f6f6f6, #1e1e1e);
+  --box-shadow: 0px 1px 1px light-dark(#1f23280f, #e0dcd70f),
+    0px 1px 3px light-dark(#1f23280f, #e0dcd70f);
+  --link-color-visited: light-dark(#570987, #936aad);
   --link-color: var(--body-font-color);
-  --pill-background-color-primary: #333333;
-  --pill-background-color-secondary: #888888;
-  --pill-font-color: #ffffff;
+  --pill-background-color-primary: light-dark(#333333, #cccccc);
+  --pill-background-color-secondary: light-dark(#888888, #777777);
+  --pill-font-color: light-dark(#ffffff, #000000);
   --progress-bar-color: #008000;
-  --release-description-background-color: #f6f8fa;
+  --release-description-background-color: light-dark(#f6f8fa, #090705);
   --release-description-code-background-color: #818b981f;
   --release-description-pre-background-color: #818b981f;
   --svg-fill-color: var(--body-font-color);
-
-  &.dark-mode {
-    --body-background-color: #050505;
-    --body-font-color: #cccccc;
-    --box-background-color: #020202;
-    --box-border-color: #333333;
-    --box-hover-color: #1e1e1e;
-    --box-shadow: 0px 1px 1px #e0dcd70f, 0px 1px 3px #e0dcd70f;
-    --link-color-visited: #936aad;
-    --link-color: var(--body-font-color);
-    --pill-background-color-primary: #cccccc;
-    --pill-background-color-secondary: #777777;
-    --pill-font-color: #000000;
-    --progress-bar-color: #008000;
-    --release-description-background-color: #090705;
-    --release-description-code-background-color: #818b981f;
-    --release-description-pre-background-color: #818b981f;
-    --svg-fill-color: var(--body-font-color);
-  }
 }
 
 body,

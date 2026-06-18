@@ -113,11 +113,11 @@
 
 <style>
   #login {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: fixed;
+    inset: 0;
+    margin: auto;
     width: 500px;
+    height: fit-content;
 
     input,
     button {

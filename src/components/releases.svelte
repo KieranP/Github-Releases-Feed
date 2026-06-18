@@ -10,7 +10,7 @@
   const { releaseGroups }: Props = $props()
 </script>
 
-<div id="releases">
+<main id="releases">
   {#each releaseGroups as group (group.key)}
     {#if group.showCaughtUp}
       <div id="caught_up">You're All Caught Up</div>
@@ -53,7 +53,7 @@
       </div>
     {/if}
   {/each}
-</div>
+</main>
 
 <style>
   #releases {

@@ -13,7 +13,13 @@
 </script>
 
 {#if progress > 0}
-  <div id="progress">
+  <div
+    id="progress"
+    aria-valuemax={100}
+    aria-valuemin={0}
+    aria-valuenow={Math.round(progress * 100)}
+    role="progressbar"
+  >
     <span {@attach barResizer}></span>
   </div>
 {:else}
@@ -25,10 +31,11 @@
 
 <style>
   #loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
 
     :global {
       svg {

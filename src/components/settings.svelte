@@ -3,7 +3,7 @@
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
   import { db } from '../db'
-  import { settings } from '../state.svelte'
+  import { applyColorScheme, settings } from '../state.svelte'
 
   interface Props {
     ondebug: () => void
@@ -15,12 +15,9 @@
   let popoverElement: HTMLDivElement | undefined = $state()
 
   function toggleDarkMode(): void {
-    document.documentElement.classList.toggle('dark-mode')
-
-    saveBooleanSetting(
-      'darkMode',
-      document.documentElement.classList.contains('dark-mode'),
-    )
+    const darkMode = !settings.darkMode
+    applyColorScheme(darkMode)
+    saveBooleanSetting('darkMode', darkMode)
   }
 
   function saveBooleanSetting(
@@ -32,7 +29,7 @@
   }
 </script>
 
-<div id="settings_btn">
+<header id="settings_btn">
   <button
     popovertarget="settings-popover"
     type="button"
@@ -58,7 +55,7 @@
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html githubSvg}
   </button>
-</div>
+</header>
 
 <div
   bind:this={popoverElement}

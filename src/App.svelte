@@ -52,10 +52,6 @@
   }
 
   onMount((): void => {
-    if (settings.darkMode) {
-      document.documentElement.classList.add('dark-mode')
-    }
-
     if (settings.githubToken !== null) {
       loader.start()
     }

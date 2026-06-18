@@ -6,7 +6,10 @@
   const { toast }: Props = $props()
 </script>
 
-<div id="toast">
+<div
+  id="toast"
+  role="alert"
+>
   {toast}
 </div>
 
