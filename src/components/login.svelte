@@ -116,8 +116,10 @@
     position: fixed;
     inset: 0;
     margin: auto;
-    width: 500px;
+    width: min(500px, calc(100% - 40px));
+    max-height: 100%;
     height: fit-content;
+    overflow-y: auto;
 
     input,
     button {
