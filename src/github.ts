@@ -37,7 +37,6 @@ export const reposQuery = /* GraphQL */ `
           ) {
             nodes {
               id
-              isDraft
               isPrerelease
               name
               publishedAt
@@ -84,7 +83,6 @@ export const descriptionQuery = /* GraphQL */ `
 
 interface GithubRelease {
   id: string
-  isDraft: boolean
   isPrerelease: boolean
   name: string
   publishedAt: string

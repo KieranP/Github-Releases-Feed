@@ -181,6 +181,7 @@
 
     <div class="options">
       <button
+        aria-label="Release options"
         popovertarget="release-menu-{data.id}"
         type="button"
       >
@@ -230,14 +231,8 @@
       target="_blank">{data.name || data.tagName}</a
     >
 
-    {#if data.isPrerelease || data.isDraft}
-      <span class="pill status">
-        {#if data.isPrerelease}
-          Prerelease
-        {:else if data.isDraft}
-          Draft
-        {/if}
-      </span>
+    {#if data.isPrerelease}
+      <span class="pill status">Prerelease</span>
     {/if}
   </div>
 

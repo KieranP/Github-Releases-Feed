@@ -23,7 +23,11 @@
     <span {@attach barResizer}></span>
   </div>
 {:else}
-  <div id="loading">
+  <div
+    id="loading"
+    aria-label="Loading releases"
+    role="status"
+  >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html loadingSvg}
   </div>

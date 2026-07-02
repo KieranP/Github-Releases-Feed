@@ -90,7 +90,7 @@ class Loader {
   })
 
   private totalRequestTime = 0
-  private totalProccesingTime = 0
+  private totalProcessingTime = 0
 
   public start(): void {
     if (!this.octokit) return
@@ -118,7 +118,7 @@ class Loader {
 
   private async fetchReleases(cursor: string | null = null): Promise<void> {
     if (!this.octokit) {
-      console.log('ERROR: Missing Github API Token. Aborting...')
+      console.error('ERROR: Missing Github API Token. Aborting...')
       return
     }
 
@@ -133,12 +133,12 @@ class Loader {
 
       // eslint-disable-next-line
       if (!this.octokit) {
-        console.log('ERROR: Missing Github API Token. Aborting...')
+        console.error('ERROR: Missing Github API Token. Aborting...')
         return
       }
 
       if (!response) {
-        console.log('ERROR: Invalid GraphQL Response. Retrying...')
+        console.warn('ERROR: Invalid GraphQL Response. Retrying...')
         void this.fetchReleases(cursor)
         return
       }
@@ -164,7 +164,7 @@ class Loader {
 
       const startProcessingTime = performance.now()
       this.processPage(repoNodes)
-      this.totalProccesingTime += performance.now() - startProcessingTime
+      this.totalProcessingTime += performance.now() - startProcessingTime
 
       if (response.rateLimit.remaining <= 0) {
         this.toast = 'ERROR: Reached Github Rate Limit'
@@ -180,11 +180,11 @@ class Loader {
           `Total Request Time: ${this.totalRequestTime.toFixed(2)} ms`,
         )
         console.log(
-          `Total Processing Time: ${this.totalProccesingTime.toFixed(2)} ms`,
+          `Total Processing Time: ${this.totalProcessingTime.toFixed(2)} ms`,
         )
       }
     } catch (error: unknown) {
-      console.log(error)
+      console.error(error)
 
       if (
         typeof error === 'object' &&

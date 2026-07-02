@@ -50,7 +50,7 @@
       <p>
         After you provide a Github Personal Access Token with read-only access
         to your starred repositories, it uses that token in conjunction with
-        Github's oktokit.js package to make requests to Github's GraphQL API. It
+        Github's octokit.js package to make requests to Github's GraphQL API. It
         fetches your starred repositories along with their releases, and then
         loops over, processes, and displays the results in a clear and
         informative way. The Github Personal Access Token is saved in the
@@ -60,7 +60,7 @@
       <p>
         Because of limitations with Github's GraphQL API, this service cannot
         fetch all releases at once. Instead, it needs to fetch releases in small
-        batches (currently 5 because fetching more seems to result in network
+        batches (currently 20 because fetching more seems to result in network
         timeouts). Each batch is then added to the results set, and re-sorted by
         release date. Therefore, as more results trickle in, the feed jumps
         around until all results are loaded. It is recommended to wait until the

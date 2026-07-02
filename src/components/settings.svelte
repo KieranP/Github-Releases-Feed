@@ -31,6 +31,7 @@
 
 <header id="settings_btn">
   <button
+    aria-label="Settings"
     popovertarget="settings-popover"
     type="button"
   >
@@ -39,6 +40,7 @@
   </button>
 
   <button
+    aria-label="Toggle dark mode"
     onclick={toggleDarkMode}
     type="button"
   >
@@ -46,15 +48,15 @@
     {@html themeSvg}
   </button>
 
-  <button
-    onclick={(): void => {
-      window.open('https://github.com/KieranP/Github-Releases-Feed', '_blank')
-    }}
-    type="button"
+  <a
+    aria-label="View source on GitHub"
+    href="https://github.com/KieranP/Github-Releases-Feed"
+    rel="noopener noreferrer"
+    target="_blank"
   >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html githubSvg}
-  </button>
+  </a>
 </header>
 
 <div
@@ -189,7 +191,8 @@
     flex-direction: column;
     gap: 12px;
 
-    button {
+    button,
+    a {
       margin: 0;
       line-height: 15px;
 
