@@ -264,7 +264,7 @@
   {#if settings.showLanguages}
     <div class="meta">
       {#each repo.languages.nodes as languageNode (languageNode.id)}
-        {@const secondary = languageNode.id !== repo.primaryLanguage?.id}
+        {const secondary = languageNode.id !== repo.primaryLanguage?.id}
         <div
           class="pill lang"
           class:secondary
