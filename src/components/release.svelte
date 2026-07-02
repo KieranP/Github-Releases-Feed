@@ -112,7 +112,7 @@
   <div class="info">
     <div class="avatar">
       <img
-        alt="Avatar"
+        alt="{owner.login} avatar"
         loading="lazy"
         src={owner.avatarUrl}
       />
@@ -173,7 +173,11 @@
     <div class="spacer"></div>
 
     {#if release.isIgnoredRepo || release.isIgnoredPrerelease}
-      <div class="ignored">
+      <div
+        class="ignored"
+        aria-label="Ignored"
+        role="img"
+      >
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html ignoredSvg}
       </div>

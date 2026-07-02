@@ -11,6 +11,7 @@
 <div id="login">
   <div>
     <input
+      aria-label="GitHub personal access token"
       placeholder="github_pat_..."
       type="text"
       bind:value={inputValue}

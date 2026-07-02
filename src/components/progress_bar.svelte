@@ -15,6 +15,7 @@
 {#if progress > 0}
   <div
     id="progress"
+    aria-label="Loading progress"
     aria-valuemax={100}
     aria-valuemin={0}
     aria-valuenow={Math.round(progress * 100)}
