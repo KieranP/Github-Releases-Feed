@@ -17,9 +17,9 @@
     {/if}
 
     {#if group.releases.length > 0}
-      {const visibleReleases = group.expanded
-        ? group.releases
-        : group.releases.slice(0, 1)}
+      {const visibleReleases = $derived(
+        group.expanded ? group.releases : group.releases.slice(0, 1),
+      )}
       {const hiddenCount = group.releases.length - 1}
 
       <div class="release_group">
