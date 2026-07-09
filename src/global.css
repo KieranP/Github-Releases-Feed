@@ -8,7 +8,8 @@
   --box-border-color: light-dark(#cccccc, #333333);
   --box-border-radius: 6px;
   --box-hover-color: light-dark(#f6f6f6, #1e1e1e);
-  --box-shadow: 0px 1px 1px light-dark(#1f23280f, #e0dcd70f),
+  --box-shadow:
+    0px 1px 1px light-dark(#1f23280f, #e0dcd70f),
     0px 1px 3px light-dark(#1f23280f, #e0dcd70f);
   --link-color-visited: light-dark(#570987, #936aad);
   --link-color: var(--body-font-color);

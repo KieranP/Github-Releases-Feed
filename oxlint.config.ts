@@ -13,6 +13,10 @@ const config: OxlintConfig = defineConfig({
     style: 'error',
     suspicious: 'error',
   },
+  options: {
+    typeAware: true,
+    typeCheck: true,
+  },
   env: {
     builtin: true,
     browser: true,

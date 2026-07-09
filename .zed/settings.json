@@ -1,4 +1,6 @@
 {
+  "$schema": "zed://schemas/settings",
+
   // Input / Function
   "format_on_save": "on",
   "tab_size": 2,
@@ -6,58 +8,86 @@
   // File Scan/Search
   "file_scan_exclusions": [".git/", ".DS_Store", "dist/"],
 
+  // Extensions
+  "auto_install_extensions": {
+    "html": true,
+    "oxc": true,
+    "svelte": true,
+    "tsgo": true
+  },
+
   // Language / LSP
   "languages": {
+    "CSS": {
+      "formatter": [{ "language_server": { "name": "oxfmt" } }]
+    },
     "HTML": {
-      "formatter": [
-        {
-          "external": {
-            "command": "pnpm",
-            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
-          },
-        },
-      ],
+      "formatter": [{ "language_server": { "name": "oxfmt" } }]
     },
     "JavaScript": {
-      "language_servers": ["tsgo", "vtsls"],
-      "formatter": [
-        {
-          "code_action": "source.fixAll.eslint",
-        },
-        {
-          "external": {
-            "command": "pnpm",
-            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
-          },
-        },
+      "language_servers": [
+        "tsgo",
+        "!vtsls",
+        "!typescript-language-server",
+        "..."
       ],
+      "formatter": [
+        { "code_action": "source.fixAll.oxc" },
+        { "code_action": "source.fixAll.eslint" },
+        { "language_server": { "name": "oxfmt" } }
+      ]
+    },
+    "JSON": {
+      "formatter": [{ "language_server": { "name": "oxfmt" } }]
+    },
+    "JSONC": {
+      "formatter": [{ "language_server": { "name": "oxfmt" } }]
+    },
+    "Markdown": {
+      "formatter": [{ "language_server": { "name": "oxfmt" } }]
     },
     "Svelte": {
-      "formatter": [
-        {
-          "code_action": "source.fixAll.eslint",
-        },
-        {
-          "external": {
-            "command": "pnpm",
-            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
-          },
-        },
+      "language_servers": [
+        "tsgo",
+        "!vtsls",
+        "!typescript-language-server",
+        "..."
       ],
+      "formatter": [
+        { "code_action": "source.fixAll.oxc" },
+        { "code_action": "source.fixAll.eslint" },
+        { "language_server": { "name": "oxfmt" } }
+      ]
     },
     "TypeScript": {
-      "language_servers": ["tsgo", "vtsls"],
-      "formatter": [
-        {
-          "code_action": "source.fixAll.eslint",
-        },
-        {
-          "external": {
-            "command": "pnpm",
-            "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"],
-          },
-        },
+      "language_servers": [
+        "tsgo",
+        "!vtsls",
+        "!typescript-language-server",
+        "..."
       ],
-    },
+      "formatter": [
+        { "code_action": "source.fixAll.oxc" },
+        { "code_action": "source.fixAll.eslint" },
+        { "language_server": { "name": "oxfmt" } }
+      ]
+    }
   },
+  "lsp": {
+    "oxlint": {
+      "initialization_options": {
+        "settings": {
+          "run": "onType",
+          "fixKind": "safe_fix"
+        }
+      }
+    },
+    "oxfmt": {
+      "initialization_options": {
+        "settings": {
+          "run": "onSave"
+        }
+      }
+    }
+  }
 }
