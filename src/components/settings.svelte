@@ -2,7 +2,7 @@
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
-  import { db } from '../db'
+  import { loader } from '../loader.svelte'
   import { applyColorScheme, settings } from '../state.svelte'
 
   interface Props {
@@ -154,6 +154,23 @@
     </label>
   </div>
 
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.disableCache,
+          (v: boolean): void => {
+            saveBooleanSetting('disableCache', v)
+            // The flag picks the pipeline per request, so reload to apply it.
+            loader.start()
+          }
+        }
+      />
+      Disable Repo Cache
+    </label>
+  </div>
+
   <div id="buttons">
     <button
       onclick={(): void => {
@@ -164,7 +181,7 @@
 
     <button
       onclick={(): void => {
-        void db?.clear('descriptions')
+        void loader.clearCachedData()
       }}
       type="button">Clear Cache</button
     >
