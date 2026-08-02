@@ -7,7 +7,7 @@
   import Settings from './components/settings.svelte'
   import Toast from './components/toast.svelte'
   import { loader } from './loader.svelte'
-  import { settings } from './state.svelte'
+  import { persist, settings } from './state.svelte'
 
   const loading = $derived(loader.loading)
   const progress = $derived(loader.progress)
@@ -17,8 +17,8 @@
   function saveGithubToken(inputValue: string): boolean {
     if (!inputValue) return false
 
-    localStorage.setItem('githubToken', inputValue)
     settings.githubToken = inputValue
+    persist('githubToken', inputValue)
     return true
   }
 

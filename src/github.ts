@@ -27,84 +27,89 @@ export async function graphqlAllowingPartials<T>(
   }
 }
 
+// Shared by both repo queries. Keep in sync with GithubRepository below.
+const repoFields = /* GraphQL */ `
+  id
+  description
+  languages(first: 100) {
+    nodes {
+      id
+      name
+    }
+  }
+  licenseInfo {
+    spdxId
+  }
+  name
+  owner {
+    avatarUrl
+    login
+    url
+  }
+  primaryLanguage {
+    id
+    name
+  }
+  releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+    nodes {
+      id
+      isPrerelease
+      name
+      publishedAt
+      tagName
+      updatedAt
+      url
+    }
+  }
+  stargazerCount
+  updatedAt
+  url
+`
+
+// Only `remaining` is ever read.
+const rateLimitFields = /* GraphQL */ `
+  rateLimit {
+    remaining
+  }
+`
+
+// Pagination walks forwards only.
+const pageInfoFields = /* GraphQL */ `
+  pageInfo {
+    endCursor
+    hasNextPage
+  }
+`
+
+// isolatedDeclarations (TS9010) can't infer through the interpolations, so
+// the `: string` below is required — and no-inferrable-types objects to it.
+/* eslint-disable @typescript-eslint/no-inferrable-types */
+
 // Cache-disabled loads: whole repos, 20 a page, no manifest pass.
-export const reposFullQuery = /* GraphQL */ `
+export const reposFullQuery: string = /* GraphQL */ `
   query ($cursor: String) {
     viewer {
       starredRepositories(first: 20, after: $cursor) {
         totalCount
-        pageInfo {
-          startCursor
-          hasPreviousPage
-          endCursor
-          hasNextPage
-        }
+        ${pageInfoFields}
 
         nodes {
-          id
-          description
-          languages(first: 100) {
-            nodes {
-              id
-              name
-            }
-          }
-          licenseInfo {
-            spdxId
-          }
-          name
-          owner {
-            avatarUrl
-            login
-            url
-          }
-          primaryLanguage {
-            id
-            name
-          }
-          releases(
-            first: 100
-            orderBy: { field: CREATED_AT, direction: DESC }
-          ) {
-            nodes {
-              id
-              isPrerelease
-              name
-              publishedAt
-              tagName
-              updatedAt
-              url
-            }
-          }
-          stargazerCount
-          updatedAt
-          url
+          ${repoFields}
         }
       }
     }
 
-    rateLimit {
-      cost
-      limit
-      remaining
-      used
-      resetAt
-    }
+    ${rateLimitFields}
   }
 `
 
 // Cache-enabled loads: repos manifest, 100 a page
-export const reposManifestQuery = /* GraphQL */ `
+export const reposManifestQuery: string = /* GraphQL */ `
   query ($cursor: String) {
     viewer {
       starredRepositories(first: 100, after: $cursor) {
         totalCount
-        pageInfo {
-          startCursor
-          hasPreviousPage
-          endCursor
-          hasNextPage
-        }
+        ${pageInfoFields}
 
         nodes {
           id
@@ -117,87 +122,36 @@ export const reposManifestQuery = /* GraphQL */ `
       }
     }
 
-    rateLimit {
-      cost
-      limit
-      remaining
-      used
-      resetAt
-    }
+    ${rateLimitFields}
   }
 `
 
-export const reposByIdsQuery = /* GraphQL */ `
+export const reposByIdsQuery: string = /* GraphQL */ `
   query ($repoIds: [ID!]!) {
     nodes(ids: $repoIds) {
       ... on Repository {
-        id
-        description
-        languages(first: 100) {
-          nodes {
-            id
-            name
-          }
-        }
-        licenseInfo {
-          spdxId
-        }
-        name
-        owner {
-          avatarUrl
-          login
-          url
-        }
-        primaryLanguage {
-          id
-          name
-        }
-        releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
-          nodes {
-            id
-            isPrerelease
-            name
-            publishedAt
-            tagName
-            updatedAt
-            url
-          }
-        }
-        stargazerCount
-        updatedAt
-        url
+        ${repoFields}
       }
     }
 
-    rateLimit {
-      cost
-      limit
-      remaining
-      used
-      resetAt
-    }
+    ${rateLimitFields}
   }
 `
 
-export const descriptionQuery = /* GraphQL */ `
+export const descriptionQuery: string = /* GraphQL */ `
   query ($releaseIds: [ID!]!) {
     nodes(ids: $releaseIds) {
       ... on Release {
         id
         descriptionHTML
-        updatedAt
       }
     }
 
-    rateLimit {
-      cost
-      limit
-      remaining
-      used
-      resetAt
-    }
+    ${rateLimitFields}
   }
 `
+
+/* eslint-enable @typescript-eslint/no-inferrable-types */
 
 interface GithubRelease {
   id: string
@@ -240,16 +194,10 @@ export interface GithubRepository {
 }
 
 interface RateLimit {
-  cost: number
-  limit: number
   remaining: number
-  used: number
-  resetAt: string
 }
 
 interface PageInfo {
-  startCursor: string
-  hasPreviousPage: boolean
   endCursor: string
   hasNextPage: boolean
 }
@@ -284,7 +232,6 @@ export interface GithubReleaseResponse {
   nodes: Array<{
     id: string
     descriptionHTML: string
-    updatedAt: string
   } | null>
   rateLimit: RateLimit
 }

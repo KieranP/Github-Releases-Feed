@@ -94,9 +94,13 @@ yourself, or the deploy ships the previous bundle.
   raw connection. Each one swallows an unavailable database and a failed
   operation, returning `[]`/`undefined`/void, so callers need no `try`/`catch`
   and the cache can never abort a load.
-- **Adding a `GithubRepository` field**: update `reposByIdsQuery`,
-  `reposFullQuery`, and the TS interface. Bump the IDB version in
-  `src/db.ts` (currently 4) if you need cached entries cleared.
+- **Adding a `GithubRepository` field**: update the shared `repoFields`
+  fragment (both `reposFullQuery` and `reposByIdsQuery` interpolate it) and
+  the TS interface. Bump the IDB version in `src/db.ts` (currently 4) if you
+  need cached entries cleared.
+- **The exported query constants need `: string`** because they interpolate
+  those fragments — `isolatedDeclarations` (TS9010) can't infer through the
+  interpolation, so `no-inferrable-types` is disabled across that block.
 
 ## Testing
 

@@ -14,7 +14,7 @@ function fetchAsSet(key: string): SvelteSet<string> {
   return new SvelteSet()
 }
 
-function fetchAsDate(key: string): Date | null {
+export function fetchAsDate(key: string): Date | null {
   const value = localStorage.getItem(key)
   if (value === null) return null
   return new Date(value)
@@ -24,11 +24,15 @@ function fetchAsBool(key: string): boolean {
   return localStorage.getItem(key) === 'true'
 }
 
-const darkModePreferred = globalThis.matchMedia(
-  '(prefers-color-scheme: dark)',
-).matches
-const darkModeRaw = fetchAsBool('darkMode')
-const darkMode = darkModePreferred || darkModeRaw
+// A stored choice wins; the OS preference is only the default. ORing the two
+// made dark mode impossible to switch off on a dark-themed system.
+function initialDarkMode(): boolean {
+  const stored = localStorage.getItem('darkMode')
+  if (stored !== null) return stored === 'true'
+  return globalThis.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+const darkMode = initialDarkMode()
 
 // Drives light-dark() in CSS; applied immediately to avoid a theme flash
 export function applyColorScheme(dark: boolean): void {
@@ -64,3 +68,24 @@ export const settings: {
   showIgnoredRepos: fetchAsBool('showIgnoredRepos'),
   showLanguages: fetchAsBool('showLanguages'),
 })
+
+// One key per setting, plus the loader's eviction timestamp.
+type StorageKey = keyof typeof settings | 'lastEvictedAt'
+
+type StorageValue = boolean | Date | Set<string> | string
+
+function stringify(value: StorageValue): string {
+  if (value instanceof Set) return JSON.stringify([...value])
+  if (value instanceof Date) return value.toISOString()
+  return String(value)
+}
+
+// The single writer for persisted state; a Set mutated in place comes back as-is.
+export function persist(key: StorageKey, value: StorageValue): void {
+  localStorage.setItem(key, stringify(value))
+}
+
+// Drop one key, restoring its default on the next load.
+export function forget(key: StorageKey): void {
+  localStorage.removeItem(key)
+}

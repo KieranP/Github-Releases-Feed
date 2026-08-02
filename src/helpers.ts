@@ -35,15 +35,21 @@ const RELATIVE_TIME_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
   ['second', 1000],
 ]
 
+// The long units read better fractionally ("1.5 months").
+const DECIMAL_UNITS = new Set<Intl.RelativeTimeFormatUnit>([
+  'year',
+  'month',
+  'week',
+])
+
 export function formatRelativeTime(date: Date, now: Date): string {
   const diffMs = date.getTime() - now.getTime()
   const absDiffMs = Math.abs(diffMs)
-  const decimalUnits = new Set(['year', 'month', 'week'])
 
   for (const [unit, ms] of RELATIVE_TIME_UNITS) {
     if (absDiffMs >= ms) {
       const value = diffMs / ms
-      const roundedValue = decimalUnits.has(unit)
+      const roundedValue = DECIMAL_UNITS.has(unit)
         ? Math.round(value * 10) / 10 // round to 1 decimal place
         : Math.round(value) // round to whole number
       return relativeTimeFormatter.format(roundedValue, unit)
@@ -59,8 +65,7 @@ export const starsFormatter: Intl.NumberFormat = new Intl.NumberFormat('en', {
   notation: 'compact',
 })
 
-// Resolve after `ms`. The only bare timer promise in the codebase; used
-// for retry backoff and the IDB open timeout.
+// The only bare timer promise here: retry backoff and the IDB open timeout.
 export async function delay(ms: number): Promise<void> {
   // oxlint-disable-next-line promise/avoid-new
   await new Promise<void>((resolve): void => {
@@ -68,7 +73,7 @@ export async function delay(ms: number): Promise<void> {
   })
 }
 
-// Split an array into consecutive batches of at most `size` items.
+// Consecutive batches of at most `size` items.
 export function chunk<T>(items: readonly T[], size: number): T[][] {
   // Guard `size < 1`: otherwise `i += size` never advances and loops forever.
   if (size < 1) return items.length > 0 ? [[...items]] : []

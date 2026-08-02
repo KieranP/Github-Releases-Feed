@@ -3,7 +3,7 @@
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
   import { loader } from '../loader.svelte'
-  import { applyColorScheme, settings } from '../state.svelte'
+  import { applyColorScheme, persist, settings } from '../state.svelte'
 
   interface Props {
     ondebug: () => void
@@ -24,8 +24,8 @@
     setting: KeysWithValsOfType<typeof settings, boolean>,
     value: boolean,
   ): void {
-    localStorage.setItem(setting, value.toString())
     settings[setting] = value
+    persist(setting, value)
   }
 </script>
 

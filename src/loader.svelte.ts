@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Octokit } from '@octokit/core'
 
 import {
@@ -27,22 +26,43 @@ import {
 import { chunk, delay, mergeSorted } from './helpers'
 import { Release } from './models/release.svelte'
 import { ReleaseGroup } from './models/release_group.svelte'
-import { settings } from './state.svelte'
+import { fetchAsDate, forget, persist, settings } from './state.svelte'
 
 const now = new Date()
 const startingDate = new Date(now)
 startingDate.setMonth(now.getMonth() - 1)
 
-// Sentinel repo for the empty trailing "caught up" group. Not a valid
-// "owner/name", so its key can't collide with a real repo group.
+// Not a valid "owner/name", so it can't collide with a real repo group.
 const CAUGHT_UP_GROUP_REPO = '__caught_up__'
 
 const REFRESH_BATCH_SIZE = 20
 const DESCRIPTION_BATCH_SIZE = 20
 const MAX_RETRIES = 3
 const RETRY_BASE_DELAY_MS = 500
+const EVICTION_INTERVAL_MS = 24 * 60 * 60 * 1000
 
-// True if release.publishedAt falls within the visible one-month feed window.
+// How a failing request narrates itself, and whether giving up ends the load.
+interface RetryPolicy {
+  retrying: string
+  exhausted: string
+  fatal: boolean
+}
+
+// Manifest pages and repo refreshes: the load can't complete without them.
+const REQUEST_RETRY_POLICY: RetryPolicy = {
+  retrying: 'Request Failed',
+  exhausted: 'Repeated Request Failures - Aborting',
+  fatal: true,
+}
+
+// Release notes are supplementary — report it, but leave the spinner alone.
+const DESCRIPTION_RETRY_POLICY: RetryPolicy = {
+  retrying: 'Release Notes Failed',
+  exhausted: 'Failed to load some release notes',
+  fatal: false,
+}
+
+// The visible feed window is one month.
 function isReleaseInWindow(release: { publishedAt: string }): boolean {
   return new Date(release.publishedAt) >= startingDate
 }
@@ -52,6 +72,42 @@ function isFullRepo(
   node: GithubRepoManifestNode | GithubRepository,
 ): node is GithubRepository {
   return 'releases' in node
+}
+
+// `updatedAt` bumps on any repo metadata write.
+function repoNeedsRefresh(
+  starredRepo: GithubRepoManifestNode,
+  cached: GithubRepository | undefined,
+): boolean {
+  if (!cached) return true
+  return cached.updatedAt !== starredRepo.updatedAt
+}
+
+// Drops releases that fall outside the feed window.
+function extractReleases(repo: GithubRepository): Release[] {
+  const { releases: releaseData, ...repoData } = repo
+
+  const fullName = `${repoData.owner.login}/${repoData.name}`
+  const releaseRepo = { ...repoData, fullName }
+
+  return releaseData.nodes.filter(isReleaseInWindow).map(
+    (releaseNode): Release =>
+      new Release({
+        repo: releaseRepo,
+        ...releaseNode,
+        publishedAt: new Date(releaseNode.publishedAt),
+      }),
+  )
+}
+
+// Newest first — the feed order mergeSorted maintains.
+function releaseSortFn(a: Release, b: Release): number {
+  return b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+}
+
+// Retrying instantly is what trips the secondary rate limit to begin with.
+async function retryDelay(retries: number): Promise<void> {
+  await delay(RETRY_BASE_DELAY_MS * 2 ** (retries - 1))
 }
 
 class Loader {
@@ -111,7 +167,7 @@ class Loader {
       groups.push(currentGroup)
     }
 
-    // No inline divider but releases exist (first visit / all seen hidden): show it at the end.
+    // First visit, or every seen release hidden: put the divider at the end.
     if (!caughtUpDividerPlaced && this.releases.length > 0) {
       const caughtUpGroup = new ReleaseGroup(CAUGHT_UP_GROUP_REPO)
       caughtUpGroup.showCaughtUp = true
@@ -127,11 +183,10 @@ class Loader {
   private starredRepoIds = new Set<string>()
   private cachedReposIndex = new Map<string, GithubRepository>()
   private reposRefreshChain: Promise<boolean> = Promise.resolve(false)
-  // Bumped on every start/reset. A token check alone can't tell a stale
-  // chain apart from a fresh one once a new token has been pasted in.
+  // Bumped on every start/reset: a token check alone can't tell a stale chain
+  // from a fresh one once a new token has been pasted in.
   private session = 0
 
-  // Kick off a load: marks loading active and starts the async pipeline.
   // No-op if no GitHub token is configured.
   public start(): void {
     if (!this.octokit) return
@@ -143,16 +198,15 @@ class Loader {
     void this.run(this.session)
   }
 
-  // Wipe the token, IDB stores, and all in-memory state. Called on
-  // explicit logout and on auth errors that invalidate the session.
+  // Called on explicit logout and on auth errors that invalidate the session.
   public reset(): void {
-    localStorage.removeItem('githubToken')
+    forget('githubToken')
     settings.githubToken = null
 
-    localStorage.removeItem('lastAccessedAt')
+    forget('lastAccessedAt')
     settings.lastAccessedAt = new Date(0)
 
-    localStorage.removeItem('lastEvictedAt')
+    forget('lastEvictedAt')
 
     // Bump first so isStale() rejects every in-flight continuation.
     this.session += 1
@@ -164,8 +218,8 @@ class Loader {
     this.resetFeedState()
   }
 
-  // Manual cache wipe from Settings. Cancels the running load first, else
-  // its in-flight writes repopulate the stores as fast as they're cleared.
+  // Cancels the running load first, else its in-flight writes repopulate the
+  // stores as fast as they're cleared.
   public async clearCachedData(): Promise<void> {
     const pendingRefresh = this.reposRefreshChain
 
@@ -174,8 +228,7 @@ class Loader {
 
     this.resetFeedState()
 
-    // Hold the spinner: draining in-flight writes and the reload that
-    // follows take seconds, and the feed is blank throughout.
+    // Hold the spinner: the drain and reload take seconds with a blank feed.
     this.loading = this.octokit !== undefined
 
     await this.wipeCache(session, pendingRefresh)
@@ -186,8 +239,7 @@ class Loader {
     this.start()
   }
 
-  // Drop all per-load state. Shared by start/reset/clearCachedData so a
-  // second load can't double-merge into the feed the first one built.
+  // Shared by start/reset/clearCachedData, so a second load can't double-merge.
   private resetFeedState(): void {
     this.totalRepos = 0
     this.reposProcessed = 0
@@ -198,13 +250,11 @@ class Loader {
     this.releasesByRepo = new Map()
     this.starredRepoIds = new Set()
     this.cachedReposIndex = new Map()
-    // A chain left resolved `true` by an earlier abort would short-circuit
-    // every batch of the next load and leave finishLoad hanging.
+    // A chain left resolved `true` would short-circuit the next load's batches.
     this.reposRefreshChain = Promise.resolve(false)
   }
 
-  // Wipe IDB now, then again once the in-flight refresh batch has finished
-  // writing — its already-queued puts would outlive the first wipe.
+  // Twice: the in-flight batch's already-queued puts outlive the first wipe.
   private async wipeCache(
     session: number,
     pendingRefresh: Promise<boolean>,
@@ -216,14 +266,12 @@ class Loader {
     await clearCache()
   }
 
-  // True once this session has been superseded or the token is gone.
-  // Every continuation after an await must bail on it.
+  // Every continuation after an await must bail on this.
   private isStale(session: number): boolean {
     return session !== this.session || !this.octokit
   }
 
-  // Top-level load pipeline: populate the in-memory cached-repo lookup
-  // from IDB, then start paginating the GitHub manifest.
+  // Hydrate the cached-repo lookup from IDB, then paginate the manifest.
   private async run(session: number): Promise<void> {
     if (!settings.disableCache) {
       const cachedRepos = await idbGetAll('repos')
@@ -236,77 +284,61 @@ class Loader {
     await this.fetchStarredReposPage(session)
   }
 
-  // Fetch one page of starred repos. Hydrate cached ones, enqueue
-  // refreshes for new/changed, then recurse to the next page.
+  // Hydrate cached repos, enqueue refreshes for the rest, then recurse.
   private async fetchStarredReposPage(
     session: number,
     cursor: string | null = null,
-    retries = 0,
   ): Promise<void> {
     if (this.isStale(session)) {
       console.error('ERROR: Session no longer active. Aborting...')
       return
     }
 
-    // Only the request is guarded: a throw while processing the response
-    // must not re-issue this page and fork the pagination chain.
-    const response = await this.requestStarredReposPage(
-      session,
-      cursor,
-      retries,
-    )
+    // Only the request is guarded: a throw while processing must not re-issue
+    // this page and fork the pagination chain.
+    const response = await this.requestStarredReposPage(session, cursor)
     if (!response) return
 
     await this.processStarredReposPage(session, response)
   }
 
-  // Request one page. Returns undefined when the request failed; a retry
-  // (or an abort) has already been scheduled in that case.
+  // Undefined once the attempts are spent, or the session was superseded.
   private async requestStarredReposPage(
     session: number,
     cursor: string | null,
-    retries: number,
   ): Promise<GithubStarredReposResponse | undefined> {
-    const { octokit } = this
-    if (!octokit) return undefined
-
     // Cache disabled: skip the manifest and pull whole repos up front.
     const query = settings.disableCache ? reposFullQuery : reposManifestQuery
 
-    try {
-      const startRequestTime = performance.now()
-      const response = await octokit.graphql<
-        GithubStarredReposResponse | undefined
-      >(query, { cursor })
+    const page = await this.withRetries(
+      session,
+      REQUEST_RETRY_POLICY,
+      async (): Promise<GithubStarredReposResponse | undefined> => {
+        const { octokit } = this
+        if (!octokit) return undefined
 
-      // Don't bill a superseded session's request to the current load.
-      if (this.isStale(session)) return undefined
+        const startRequestTime = performance.now()
+        const response = await octokit.graphql<
+          GithubStarredReposResponse | undefined
+        >(query, { cursor })
 
-      this.totalRequestTime += performance.now() - startRequestTime
+        // Don't bill a superseded session's request to the current load.
+        if (this.isStale(session)) return undefined
 
-      if (!response) {
-        throw new Error('Invalid GraphQL Response')
-      }
+        this.totalRequestTime += performance.now() - startRequestTime
 
-      return response
-    } catch (error: unknown) {
-      console.error(error)
-      if (this.handleAuthError(session, error)) return undefined
+        if (!response) {
+          throw new Error('Invalid GraphQL Response')
+        }
 
-      // A superseded session must not touch the live one's toast or spinner.
-      if (this.isStale(session)) return undefined
+        return response
+      },
+    )
 
-      const nextRetries = this.nextRetry(retries)
-      if (nextRetries === null) return undefined
-
-      await this.retryDelay(nextRetries)
-      void this.fetchStarredReposPage(session, cursor, nextRetries)
-      return undefined
-    }
+    return page
   }
 
-  // Merge the ready repos from one page into the feed, enqueue refreshes
-  // for the rest, and either advance pagination or wrap the load up.
+  // Merge ready repos, enqueue refreshes for the rest, then advance or wrap up.
   private async processStarredReposPage(
     session: number,
     response: GithubStarredReposResponse,
@@ -346,7 +378,7 @@ class Loader {
         }
 
         const cached = this.cachedReposIndex.get(starredRepo.id)
-        if (this.repoNeedsRefresh(starredRepo, cached)) {
+        if (repoNeedsRefresh(starredRepo, cached)) {
           repoIdsToRefresh.push(starredRepo.id)
         } else if (cached) {
           readyRepos.push(cached)
@@ -376,36 +408,17 @@ class Loader {
     }
   }
 
-  // Decide whether a manifest entry warrants a full refetch by comparing
-  // `updatedAt` (which bumps on any repo metadata write).
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private repoNeedsRefresh(
-    starredRepo: GithubRepoManifestNode,
-    cached: GithubRepository | undefined,
-  ): boolean {
-    if (!cached) return true
-    return cached.updatedAt !== starredRepo.updatedAt
-  }
-
-  // Extract in-window releases from `repos`, merge them into the sorted
-  // feed, index by id, and kick off description fetches.
+  // Merge into the sorted feed, index by id, then fetch descriptions.
   private mergeReposIntoFeed(session: number, repos: GithubRepository[]): void {
     const startProcessingTime = performance.now()
     const newReleases: Release[] = []
 
     for (const repo of repos) {
-      const releases = this.extractReleases(repo)
-      if (releases.length > 0) {
-        newReleases.push(...releases)
-      }
+      newReleases.push(...extractReleases(repo))
     }
 
     if (newReleases.length > 0) {
-      this.releases = mergeSorted(
-        this.releases,
-        newReleases,
-        this.releaseSortFn,
-      )
+      this.releases = mergeSorted(this.releases, newReleases, releaseSortFn)
 
       for (const release of newReleases) {
         this.releasesIndex.set(release.data.id, release)
@@ -424,8 +437,7 @@ class Loader {
     this.totalProcessingTime += performance.now() - startProcessingTime
   }
 
-  // Descriptions stream in after the feed has already rendered, so this is
-  // fire-and-forget — nothing must escape as an unhandled rejection.
+  // Fire-and-forget: nothing must escape as an unhandled rejection.
   private async loadDescriptions(
     session: number,
     releases: Release[],
@@ -437,39 +449,7 @@ class Loader {
     }
   }
 
-  // Convert a GitHub repo node into Release instances, dropping any
-  // whose publishedAt is older than the visible (one-month) window.
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private extractReleases(repo: GithubRepository): Release[] {
-    const { releases: releaseData, ...repoData } = repo
-    const releaseNodes = releaseData.nodes
-
-    const fullName = `${repoData.owner.login}/${repoData.name}`
-    const releaseRepo = { ...repoData, fullName }
-
-    return releaseNodes.reduce<Release[]>((result, releaseNode) => {
-      const publishedAt = new Date(releaseNode.publishedAt)
-      if (publishedAt >= startingDate) {
-        const release = new Release({
-          repo: releaseRepo,
-          ...releaseNode,
-          publishedAt,
-        })
-        result.push(release)
-      }
-      return result
-    }, [])
-  }
-
-  // Sort releases newest-first by publishedAt. Used by mergeSorted to
-  // maintain the feed order.
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private releaseSortFn(a: Release, b: Release): number {
-    return b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
-  }
-
-  // Fill in HTML descriptions for the given releases: attach cached
-  // entries from IDB, then batch-fetch the rest from GitHub.
+  // Attach cached entries from IDB, then batch-fetch the rest.
   private async fetchReleaseDescriptions(
     session: number,
     releases: Release[],
@@ -500,36 +480,38 @@ class Loader {
 
     await Promise.all(
       batches.map(async (releaseIds): Promise<void> => {
-        await this.fetchDescriptionBatch(session, releaseIds, 0)
+        await this.fetchDescriptionBatch(session, releaseIds)
       }),
     )
   }
 
-  // Fetch one batch of rendered release notes. Retries transient failures
-  // rather than leaving the cards permanently blank.
+  // Retries rather than leaving the cards permanently blank.
   private async fetchDescriptionBatch(
     session: number,
     releaseIds: string[],
-    retries: number,
   ): Promise<void> {
-    const { octokit } = this
-    if (!octokit || this.isStale(session)) return
+    await this.withRetries(
+      session,
+      DESCRIPTION_RETRY_POLICY,
+      async (): Promise<boolean | undefined> => {
+        const { octokit } = this
+        if (!octokit || this.isStale(session)) return true
 
-    try {
-      const response = await graphqlAllowingPartials<GithubReleaseResponse>(
-        octokit,
-        descriptionQuery,
-        { releaseIds },
-      )
+        const response = await graphqlAllowingPartials<GithubReleaseResponse>(
+          octokit,
+          descriptionQuery,
+          { releaseIds },
+        )
 
-      if (this.isStale(session)) return
+        if (this.isStale(session)) return true
 
-      if (response) {
+        // Missing response — retry.
+        if (!response) return undefined
+
         for (const releaseNode of response.nodes) {
           if (!releaseNode) continue
 
-          // Key on the release's own updatedAt, not the one this query
-          // returns — reads and eviction both key on the cached value.
+          // Key on the release's own updatedAt; reads and eviction use that.
           const release = this.releasesIndex.get(releaseNode.id)
           if (release) {
             void idbPut(
@@ -544,33 +526,13 @@ class Loader {
             releaseNode.descriptionHTML,
           )
         }
-        return
-      }
-      // Missing response — fall through to retry.
-    } catch (error: unknown) {
-      console.error(error)
-      if (this.handleAuthError(session, error)) return
-      // Fall through to retry on non-auth errors.
-    }
 
-    // A superseded session must not touch the live one's toast.
-    if (this.isStale(session)) return
-
-    // Notes are supplementary: report the failure without tearing down the
-    // progress bar, which is what nextRetry() would do here.
-    if (retries >= MAX_RETRIES) {
-      this.toast = 'ERROR: Failed to load some release notes'
-      return
-    }
-
-    const nextRetries = retries + 1
-    this.toast = `ERROR: Release Notes Failed - Retry #${nextRetries}`
-    await this.retryDelay(nextRetries)
-    await this.fetchDescriptionBatch(session, releaseIds, nextRetries)
+        return true
+      },
+    )
   }
 
-  // Look up a release by id and set its descriptionHTML so the UI
-  // re-renders that card with the rendered notes.
+  // Setting descriptionHTML re-renders that card.
   private attachReleaseDescription(
     releaseId: string,
     description: string,
@@ -582,8 +544,7 @@ class Loader {
     }
   }
 
-  // Queue a repo-refresh batch onto the serialized chain so it runs
-  // after earlier batches finish (GitHub's secondary rate limit).
+  // Serialized: concurrent batches trip GitHub's secondary rate limit.
   private enqueueRepoRefresh(session: number, repoIds: string[]): void {
     this.reposRefreshChain = this.runRefreshBatch(
       this.reposRefreshChain,
@@ -592,8 +553,8 @@ class Loader {
     )
   }
 
-  // Run one batch after `previous` settles. Belt-and-braces: an unexpected
-  // throw becomes a clean abort rather than poisoning the chain.
+  // Belt-and-braces: an unexpected throw aborts cleanly instead of
+  // poisoning the chain.
   private async runRefreshBatch(
     previous: Promise<boolean>,
     session: number,
@@ -603,7 +564,7 @@ class Loader {
       const aborted = await previous
       if (aborted || this.isStale(session)) return true
 
-      return await this.refreshRepos(session, repoIds, 0)
+      return await this.refreshRepos(session, repoIds)
     } catch (error) {
       console.error(error)
       // finishLoad bails on abort, so stop the spinner here.
@@ -615,32 +576,36 @@ class Loader {
     }
   }
 
-  // Refresh up to REFRESH_BATCH_SIZE repos via nodes(ids:...). Retries
-  // up to 3× on transient errors; returns true to signal abort.
+  // Refresh one batch via nodes(ids:...). True signals abort.
   private async refreshRepos(
     session: number,
     repoIds: string[],
-    retries: number,
   ): Promise<boolean> {
-    const { octokit } = this
-    if (!octokit || this.isStale(session)) return true
+    const aborted = await this.withRetries(
+      session,
+      REQUEST_RETRY_POLICY,
+      async (): Promise<boolean | undefined> => {
+        const { octokit } = this
+        if (!octokit || this.isStale(session)) return true
 
-    try {
-      const startRequestTime = performance.now()
-      const response = await graphqlAllowingPartials<GithubReposByIdsResponse>(
-        octokit,
-        reposByIdsQuery,
-        { repoIds },
-      )
+        const startRequestTime = performance.now()
+        const response =
+          await graphqlAllowingPartials<GithubReposByIdsResponse>(
+            octokit,
+            reposByIdsQuery,
+            { repoIds },
+          )
 
-      if (this.isStale(session)) return true
+        if (this.isStale(session)) return true
 
-      this.totalRequestTime += performance.now() - startRequestTime
+        this.totalRequestTime += performance.now() - startRequestTime
 
-      if (response) {
+        // Missing response — retry.
+        if (!response) return undefined
+
         this.toast = ''
 
-        // nodes(ids:...) returns null for unresolvable ids; trim resolved repos to the window.
+        // Unresolvable ids come back null; trim the rest to the window.
         const resolvedById = new Map<string, GithubRepository>()
         for (const repo of response.nodes) {
           if (repo !== null) {
@@ -657,19 +622,17 @@ class Loader {
           }),
         )
 
-        // The IDB writes above are the last await; don't touch feed state
-        // on behalf of a session that ended while they were in flight.
+        // Last await: don't touch feed state for a session that ended mid-write.
         if (this.isStale(session)) return true
 
         this.dropReleasesForRepos(new Set(repoIds))
 
         this.mergeReposIntoFeed(session, [...resolvedById.values()])
 
-        // Advance by full batch size so progress reaches 100% even when ids resolve to null.
+        // Full batch size, so progress hits 100% even when ids resolve to null.
         this.reposProcessed += repoIds.length
 
-        // Out of points: stop the chain here rather than burning every
-        // remaining batch (and its retries) on certain failures.
+        // Out of points: stop rather than burn every remaining batch on failures.
         if (response.rateLimit.remaining <= 0) {
           this.toast = 'ERROR: Reached Github Rate Limit'
           this.loading = false
@@ -677,26 +640,14 @@ class Loader {
         }
 
         return false
-      }
-      // Missing response — fall through to retry.
-    } catch (error: unknown) {
-      console.error(error)
-      if (this.handleAuthError(session, error)) return true
-      // Fall through to retry on non-auth errors.
-    }
+      },
+    )
 
-    // A superseded session must not touch the live one's toast or spinner.
-    if (this.isStale(session)) return true
-
-    const nextRetries = this.nextRetry(retries)
-    if (nextRetries === null) return true
-
-    await this.retryDelay(nextRetries)
-    return this.refreshRepos(session, repoIds, nextRetries)
+    // Spent retries abort the chain, same as an explicit true.
+    return aborted ?? true
   }
 
-  // Drop in-memory Release entries (and index entries) belonging to
-  // any of the given repos. Used before re-merging fresh repo data.
+  // Used before re-merging fresh repo data.
   private dropReleasesForRepos(repoIds: Set<string>): void {
     if (this.releases.length === 0 || repoIds.size === 0) return
 
@@ -718,8 +669,7 @@ class Loader {
     }
   }
 
-  // Detect a 401 and reset the session if so. Returns true when the
-  // error was handled, false for other error types.
+  // True when the error was a 401 and the session has been reset.
   private handleAuthError(session: number, error: unknown): boolean {
     if (
       typeof error === 'object' &&
@@ -737,35 +687,46 @@ class Loader {
     return false
   }
 
-  // Shared retry policy: returns the next retry count if more attempts
-  // remain (and sets the retry toast), else null + surfaces the abort.
-  private nextRetry(retries: number): number | null {
-    if (retries < MAX_RETRIES) {
+  // Retry `attempt` until it returns a value, MAX_RETRIES are spent, or the
+  // session goes stale. It asks for another go with undefined, as does a throw.
+  private async withRetries<T>(
+    session: number,
+    policy: RetryPolicy,
+    attempt: () => Promise<T | undefined>,
+  ): Promise<T | undefined> {
+    // Sequential by definition — backing off is the point.
+    /* eslint-disable no-await-in-loop */
+    for (let retries = 0; ; retries += 1) {
+      try {
+        const value = await attempt()
+        if (value !== undefined) return value
+      } catch (error: unknown) {
+        console.error(error)
+        if (this.handleAuthError(session, error)) return undefined
+      }
+
+      // A superseded session must not touch the live one's toast or spinner.
+      if (this.isStale(session)) return undefined
+
+      if (retries >= MAX_RETRIES) {
+        this.toast = `ERROR: ${policy.exhausted}`
+        if (policy.fatal) this.loading = false
+        return undefined
+      }
+
       const nextRetries = retries + 1
-      this.toast = `ERROR: Request Failed - Retry #${nextRetries}`
-      console.log(this.toast)
-      return nextRetries
+      this.toast = `ERROR: ${policy.retrying} - Retry #${nextRetries}`
+      await retryDelay(nextRetries)
+      if (this.isStale(session)) return undefined
     }
-
-    this.toast = 'ERROR: Repeated Request Failures - Aborting'
-    this.loading = false
-    return null
+    /* eslint-enable no-await-in-loop */
   }
 
-  // Exponential backoff between attempts — retrying instantly is what
-  // trips GitHub's secondary rate limit in the first place.
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private async retryDelay(retries: number): Promise<void> {
-    await delay(RETRY_BASE_DELAY_MS * 2 ** (retries - 1))
-  }
-
-  // After the final manifest page: evict repos that disappeared from
-  // the manifest, drain refresh batches, then wrap up the load.
+  // Evict repos that vanished from the manifest, drain batches, wrap up.
   private async finishLoad(session: number): Promise<void> {
     await this.deleteUnstarredRepos()
 
-    // Bail before clearing: a superseded session must not pull these out
-    // from under the pipeline that replaced it.
+    // Bail first: a superseded session mustn't pull these from its successor.
     if (this.isStale(session)) return
 
     // Drop both collections so the GC can reclaim them while refreshes drain.
@@ -778,8 +739,8 @@ class Loader {
 
     this.loading = false
 
-    // Persist only; in-memory stays at session-start so the marker doesn't jump mid-session.
-    localStorage.setItem('lastAccessedAt', new Date().toISOString())
+    // Persist only: in-memory stays put so the marker can't jump mid-session.
+    persist('lastAccessedAt', new Date())
 
     console.log(`Total Request Time: ${this.totalRequestTime.toFixed(2)} ms`)
     console.log(
@@ -789,8 +750,7 @@ class Loader {
     await this.evictStaleData(session)
   }
 
-  // Delete cached repos that no longer appear in the user's current
-  // starred set (e.g. unstarred between sessions).
+  // Repos unstarred between sessions.
   private async deleteUnstarredRepos(): Promise<void> {
     const staleIds: string[] = []
     for (const cachedId of this.cachedReposIndex.keys()) {
@@ -806,8 +766,7 @@ class Loader {
     )
   }
 
-  // Garbage-collect IDB after a completed load. The repos store is cleared
-  // when the cache is disabled; the sweeps below run at most once a day.
+  // GC after a completed load; the sweeps below run at most once a day.
   private async evictStaleData(session: number): Promise<void> {
     const { disableCache } = settings
 
@@ -820,10 +779,10 @@ class Loader {
     }
 
     // Both sweeps below walk an entire store — once a day is plenty.
-    const lastEvictedAtRaw = localStorage.getItem('lastEvictedAt')
-    if (lastEvictedAtRaw !== null) {
-      const elapsed = Date.now() - new Date(lastEvictedAtRaw).getTime()
-      if (elapsed < 24 * 60 * 60 * 1000) return
+    const lastEvictedAt = fetchAsDate('lastEvictedAt')
+    if (lastEvictedAt !== null) {
+      const elapsed = Date.now() - lastEvictedAt.getTime()
+      if (elapsed < EVICTION_INTERVAL_MS) return
     }
 
     // Skipped when the cache is disabled: the store was just cleared.
@@ -836,15 +795,14 @@ class Loader {
 
     if (this.isStale(session)) return
 
-    localStorage.setItem('lastEvictedAt', new Date().toISOString())
+    persist('lastEvictedAt', new Date())
   }
 
-  // Trim aged-out releases from each cached repo. Never deletes rows —
-  // deleteUnstarredRepos owns that.
+  // Never deletes rows — deleteUnstarredRepos owns that.
   private async evictStaleRepos(session: number): Promise<void> {
     const allRepos = await idbGetAll('repos')
 
-    // Bail before queueing writes so they don't land after reset()'s db.clear('repos').
+    // Bail before queueing writes; they'd land after reset()'s clear.
     if (this.isStale(session)) return
 
     await Promise.all(

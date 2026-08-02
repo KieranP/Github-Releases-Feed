@@ -22,14 +22,12 @@ interface GithubReleasesDBSchema extends DBSchema {
   }
 }
 
-// A tab holding an older version open blocks the upgrade indefinitely,
-// and this module is initialised with a top-level await — cap the wait.
+// A blocking tab would stall this module's top-level await forever.
 const OPEN_TIMEOUT_MS = 5000
 
 let db: IDBPDatabase<GithubReleasesDBSchema> | undefined = undefined
 
-// Await the open and store the result. Split out from openDatabase so the
-// timeout can win the race while this keeps running.
+// Split from openDatabase so the timeout can win the race while this runs on.
 async function storeDatabase(
   opening: Promise<IDBPDatabase<GithubReleasesDBSchema>>,
 ): Promise<void> {
@@ -40,8 +38,8 @@ async function storeDatabase(
   }
 }
 
-// Issue the open request. openDB calls indexedDB.open() synchronously and
-// that throws outright where storage is unavailable, so it needs guarding.
+// openDB calls indexedDB.open() synchronously, which throws outright
+// where storage is unavailable.
 function requestDatabase():
   | Promise<IDBPDatabase<GithubReleasesDBSchema>>
   | undefined {
@@ -74,120 +72,128 @@ function requestDatabase():
   }
 }
 
-// Open the IDB database, creating/upgrading stores as needed. Leaves `db`
-// undefined on failure (e.g. private-mode storage restrictions).
+// Leaves `db` undefined on failure (e.g. private-mode storage restrictions).
 async function openDatabase(): Promise<void> {
   const opening = requestDatabase()
   if (!opening) return
 
-  // storeDatabase keeps running past the timeout, so a slow open still
-  // populates `db` — just after the app has started without it.
+  // A slow open still populates `db`, just after the app started without it.
   await Promise.race([storeDatabase(opening), delay(OPEN_TIMEOUT_MS)])
 }
 
 await openDatabase()
 
-// Composite key for the descriptions store: pairs release id with
-// updatedAt so edited release notes auto-invalidate.
+// Pairing in updatedAt makes edited release notes auto-invalidate.
 export function descriptionKey(id: string, updatedAt: string): string {
   return `${id}-${updatedAt}`
 }
 
-// Every accessor below is best-effort: an unopened database, a connection
-// dropped by another tab's upgrade, or a quota failure all degrade to the
-// empty result rather than rejecting. The cache is an optimisation — losing
-// it must cost a refetch, never the load.
+// Every accessor below is a signature over this, so none can throw: no
+// database, a dropped connection, and a quota failure all yield `fallback`.
+async function withDatabase<T>(
+  failure: string,
+  fallback: T,
+  operation: (database: IDBPDatabase<GithubReleasesDBSchema>) => Promise<T>,
+): Promise<T> {
+  const database = db
+  if (!database) return fallback
 
-// Read a whole store. Empty on failure, so callers just get a cache miss.
+  try {
+    return await operation(database)
+  } catch (error) {
+    console.error(failure, error)
+    return fallback
+  }
+}
+
+// Empty on failure, so callers just get a cache miss.
 export async function idbGetAll<
   Name extends StoreNames<GithubReleasesDBSchema>,
 >(store: Name): Promise<Array<StoreValue<GithubReleasesDBSchema, Name>>> {
-  if (!db) return []
-
-  try {
-    return await db.getAll(store)
-  } catch (error) {
-    console.error(`Failed to read the ${store} store`, error)
-    return []
-  }
+  const values = await withDatabase<
+    Array<StoreValue<GithubReleasesDBSchema, Name>>
+  >(`Failed to read the ${store} store`, [], async (database) => {
+    const stored = await database.getAll(store)
+    return stored
+  })
+  return values
 }
 
-// Read every key in a store. Used by the eviction sweeps.
+// Used by the eviction sweeps.
 export async function idbGetAllKeys<
   Name extends StoreNames<GithubReleasesDBSchema>,
 >(store: Name): Promise<Array<StoreKey<GithubReleasesDBSchema, Name>>> {
-  if (!db) return []
-
-  try {
-    return await db.getAllKeys(store)
-  } catch (error) {
-    console.error(`Failed to read the ${store} keys`, error)
-    return []
-  }
+  const keys = await withDatabase<
+    Array<StoreKey<GithubReleasesDBSchema, Name>>
+  >(`Failed to read the ${store} keys`, [], async (database) => {
+    const stored = await database.getAllKeys(store)
+    return stored
+  })
+  return keys
 }
 
-// Read one entry. Undefined covers both "not cached" and "read failed".
+// Undefined covers both "not cached" and "read failed".
 export async function idbGet<Name extends StoreNames<GithubReleasesDBSchema>>(
   store: Name,
   key: StoreKey<GithubReleasesDBSchema, Name>,
 ): Promise<StoreValue<GithubReleasesDBSchema, Name> | undefined> {
-  if (!db) return undefined
-
-  try {
-    return await db.get(store, key)
-  } catch (error) {
-    console.error(`Failed to read from the ${store} store`, error)
-    return undefined
-  }
+  const value = await withDatabase<
+    StoreValue<GithubReleasesDBSchema, Name> | undefined
+  >(`Failed to read from the ${store} store`, undefined, async (database) => {
+    const stored = await database.get(store, key)
+    return stored
+  })
+  return value
 }
 
-// Write one entry. Both stores use out-of-line keys, hence the explicit key.
+// Both stores use out-of-line keys, hence the explicit key.
 export async function idbPut<Name extends StoreNames<GithubReleasesDBSchema>>(
   store: Name,
   value: StoreValue<GithubReleasesDBSchema, Name>,
   key: StoreKey<GithubReleasesDBSchema, Name>,
 ): Promise<void> {
-  if (!db) return
-
-  try {
-    await db.put(store, value, key)
-  } catch (error) {
-    console.error(`Failed to write to the ${store} store`, error)
-  }
+  await withDatabase<undefined>(
+    `Failed to write to the ${store} store`,
+    undefined,
+    async (database): Promise<undefined> => {
+      await database.put(store, value, key)
+      return undefined
+    },
+  )
 }
 
-// Delete one entry.
 export async function idbDelete<
   Name extends StoreNames<GithubReleasesDBSchema>,
 >(store: Name, key: StoreKey<GithubReleasesDBSchema, Name>): Promise<void> {
-  if (!db) return
-
-  try {
-    await db.delete(store, key)
-  } catch (error) {
-    console.error(`Failed to delete from the ${store} store`, error)
-  }
+  await withDatabase<undefined>(
+    `Failed to delete from the ${store} store`,
+    undefined,
+    async (database): Promise<undefined> => {
+      await database.delete(store, key)
+      return undefined
+    },
+  )
 }
 
-// Empty a whole store.
 async function idbClear(
   store: StoreNames<GithubReleasesDBSchema>,
 ): Promise<void> {
-  if (!db) return
-
-  try {
-    await db.clear(store)
-  } catch (error) {
-    console.error(`Failed to clear the ${store} store`, error)
-  }
+  await withDatabase<undefined>(
+    `Failed to clear the ${store} store`,
+    undefined,
+    async (database): Promise<undefined> => {
+      await database.clear(store)
+      return undefined
+    },
+  )
 }
 
-// Wipe both IDB stores. Used on logout and from the Clear Cache button.
+// Used on logout and from the Clear Cache button.
 export async function clearCache(): Promise<void> {
   await Promise.all([idbClear('descriptions'), idbClear('repos')])
 }
 
-// Wipe just the repos store, leaving cached descriptions in place.
+// Leaves cached descriptions in place.
 export async function clearRepos(): Promise<void> {
   await idbClear('repos')
 }

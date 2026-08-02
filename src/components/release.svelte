@@ -8,7 +8,7 @@
     intersectionObserver,
     starsFormatter,
   } from '../helpers'
-  import { settings } from '../state.svelte'
+  import { persist, settings } from '../state.svelte'
 
   import type { Release } from '../models/release.svelte'
 
@@ -24,6 +24,11 @@
   const repo = $derived(data.repo)
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
+
+  // isIgnoredPrerelease is false on a stable release, so the menu can't use it.
+  const prereleasesIgnored = $derived(
+    settings.ignoredPrereleases.has(repo.fullName),
+  )
 
   function onintersect({
     detail: { isIntersecting, target },
@@ -47,42 +52,17 @@
     popoverElement?.hidePopover()
   }
 
-  function ignoreRepo(): void {
-    settings.ignoredRepos.add(repo.fullName)
-    persistIgnoredRepos()
+  function toggleIgnored(key: 'ignoredPrereleases' | 'ignoredRepos'): void {
+    const ignored = settings[key]
+
+    if (ignored.has(repo.fullName)) {
+      ignored.delete(repo.fullName)
+    } else {
+      ignored.add(repo.fullName)
+    }
+
+    persist(key, ignored)
     closeMenu()
-  }
-
-  function unignoreRepo(): void {
-    settings.ignoredRepos.delete(repo.fullName)
-    persistIgnoredRepos()
-    closeMenu()
-  }
-
-  function persistIgnoredRepos(): void {
-    localStorage.setItem(
-      'ignoredRepos',
-      JSON.stringify([...settings.ignoredRepos]),
-    )
-  }
-
-  function ignorePrerelease(): void {
-    settings.ignoredPrereleases.add(repo.fullName)
-    persistIgnoredPrereleases()
-    closeMenu()
-  }
-
-  function unignorePrerelease(): void {
-    settings.ignoredPrereleases.delete(repo.fullName)
-    persistIgnoredPrereleases()
-    closeMenu()
-  }
-
-  function persistIgnoredPrereleases(): void {
-    localStorage.setItem(
-      'ignoredPrereleases',
-      JSON.stringify([...settings.ignoredPrereleases]),
-    )
   }
 
   function observeSize(element: HTMLDivElement): () => void {
@@ -201,30 +181,22 @@
     class="menu"
     popover
   >
-    {#if release.isIgnoredRepo}
-      <button
-        onclick={unignoreRepo}
-        type="button">Unignore all releases from this repo</button
-      >
-    {:else}
-      <button
-        onclick={ignoreRepo}
-        type="button">Ignore all releases from this repo</button
-      >
-    {/if}
+    <button
+      onclick={(): void => {
+        toggleIgnored('ignoredRepos')
+      }}
+      type="button"
+      >{release.isIgnoredRepo ? 'Unignore' : 'Ignore'} all releases from this repo</button
+    >
 
     {#if !release.isIgnoredRepo}
-      {#if release.isIgnoredPrerelease}
-        <button
-          onclick={unignorePrerelease}
-          type="button">Unignore prereleases from this repo</button
-        >
-      {:else}
-        <button
-          onclick={ignorePrerelease}
-          type="button">Ignore prereleases from this repo</button
-        >
-      {/if}
+      <button
+        onclick={(): void => {
+          toggleIgnored('ignoredPrereleases')
+        }}
+        type="button"
+        >{prereleasesIgnored ? 'Unignore' : 'Ignore'} prereleases from this repo</button
+      >
     {/if}
   </div>
 
