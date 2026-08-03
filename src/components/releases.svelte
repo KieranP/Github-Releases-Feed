@@ -20,7 +20,7 @@
       {const visibleReleases = $derived(
         group.expanded ? group.releases : group.releases.slice(0, 1),
       )}
-      {const hiddenCount = group.releases.length - 1}
+      {const hiddenCount = $derived(group.releases.length - 1)}
 
       <div class="release_group">
         {#each visibleReleases as release (release.data.id)}
