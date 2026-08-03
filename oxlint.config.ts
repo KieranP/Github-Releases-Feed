@@ -48,7 +48,10 @@ const config: OxlintConfig = defineConfig({
     'import/no-mutable-exports': 'off',
     'import/no-named-export': 'off',
     'import/no-relative-parent-imports': 'off',
-    'import/no-unassigned-import': ['error', { allow: ['**/*.css'] }],
+    'import/no-unassigned-import': [
+      'error',
+      { allow: ['**/*.css', '**/fake-indexeddb/auto'] },
+    ],
     'import/prefer-default-export': 'off', // Conflicts with import/no-default-export
     'import/unambiguous': 'off',
 
@@ -87,17 +90,16 @@ const config: OxlintConfig = defineConfig({
         // OxLint doesn't evaluate the HTML portion of Svelte files (yet).
         // As a result, a couple of linting rules won't work.
 
-        // Variables defined in the TS portion, but set (using bind:this) in
-        // the HTML portion will seen as unassigned
+        // Variables defined in the TS portion but set in the HTML portion
+        // (using bind:this) are seen as unassigned.
         'eslint/no-unassigned-vars': 'off',
 
         // OxLint wants to change "let" to "const", even though the variable
-        // is being reassigned by Svelte's bind:value
+        // is being reassigned by Svelte's bind:value.
         'eslint/prefer-const': 'off',
 
-        // When an imported component is used as a type specifier in the TS
-        // portion, OxLint throws the following error:
-        // "All imports in the declaration are only used as types. Use `import type`."
+        // A component imported for use as a type specifier in the TS portion
+        // trips: "All imports in the declaration are only used as types."
         'typescript/consistent-type-imports': 'off',
       },
     },

@@ -8,103 +8,99 @@ Personalized feed of GitHub releases for starred repos.
 ## Layout
 
 - `src/App.svelte` — entry: starts the loader on mount, wires login/logout.
-- `src/loader.svelte.ts` — sync pipeline: incremental by default, full
-  refetch when Disable Repo Cache is on. See `IMPLEMENTATION.md`.
-- `src/github.ts` — GraphQL queries + types, and `graphqlAllowingPartials`.
+- `src/loader.svelte.ts` — façade over the pipeline: `start`/`reset`/
+  `clearCachedData` + the `loading`/`progress`/`groups`/`toast` getters.
+- Pipeline, flat siblings so none imports back out of a folder (see
+  `IMPLEMENTATION.md`): `session.svelte.ts` (octokit + staleness),
+  `status.svelte.ts`, `feed.svelte.ts` (releases + `groups`), `repo_sync.ts`
+  (manifest + serial refresh chain), `description_sync.ts`, `retry.ts`,
+  `cache_eviction.ts`, `release_window.ts`.
+- `src/github.ts` — queries + types + `graphqlAllowingPartials`.
 - `src/db.ts` — IDB (`github-releases`, v4): `repos` + `descriptions`.
 - `src/state.svelte.ts` — settings (localStorage) + color scheme.
-- `src/helpers.ts` — formatters, `delay`, `chunk`, `mergeSorted`.
-- `src/models/` — `Release`, `ReleaseGroup` (display logic + `dump()` for Debug).
-- `src/components/` — login, settings, releases, release, progress bar, toast.
-- `src/types.d.ts` — `KeysWithValsOfType` + the `onintersect` custom event.
+- `src/helpers.ts`, `src/models/`, `src/components/`, `src/styles/`,
+  `src/types.d.ts`.
+- `tests/` — vitest specs + `setup.ts`; the only place that imports `../src`.
 - `dist/` — **committed**; the Pages workflow uploads it as-is (see Deploy).
 
 ## Coding standards (strict)
 
-- **Svelte 5**: MUST use Runes (`$state`, `$derived`, `$props`). NO legacy (`$:`, `export let`).
-- **Logic**: Business logic in `.svelte.ts` models, not components.
-- **TypeScript**: No `any`. Explicit return types required. Async = `Promise<T>`.
-- **Imports**: extensionless (`moduleResolution: bundler`). A `.svelte.ts`
-  module is imported without the `.ts` — `from './loader.svelte'`.
-- **Styling**: Scoped CSS, nested. Use vars from `src/global.css`.
-- **Comments**: Keep them short. Max 2 lines before a function/declaration;
-  max 1 line inside a function.
-- **Loader**: Methods are ordered DFS from `start()` — preserve that.
-  (`@typescript-eslint/member-ordering` is disabled at the top of the file
-  for exactly this reason.)
+- **Svelte 5**: Runes only (`$state`, `$derived`, `$props`). No `$:`/`export let`.
+- **Logic** in `.svelte.ts` models, not components.
+- **TypeScript**: no `any`; explicit return types; async = `Promise<T>`.
+- **Imports**: extensionless; `.svelte.ts` drops the `.ts`. Point at siblings or
+  into a folder, never back out with `../` (`tests/` excepted).
+- **Styling**: scoped, nested CSS; vars from `src/styles/global.css`.
+- **Comments**: max 3 lines before a class, 2 before a function, 1 inside one.
+- **`RepoSync`**: methods below `run()` are ordered DFS from it — preserve that.
+- **Pipeline deps** arrive as one `…Deps` object (`max-params` caps at 3).
 
 ## Commands
 
 `pnpm types` · `pnpm lint` · `pnpm format` · `pnpm test` · `pnpm build` · `pnpm dev --open`
 
-`types` and `lint` each run two tools (`tsc` + `svelte-check`, `oxlint` +
-`eslint`) chained with `;`, so a failure in the first does not stop the second.
+`types` and `lint` each run two tools chained with `;`, so a failure in the
+first doesn't stop the second.
 
 ## Deploy
 
-`.github/workflows/static.yml` deploys `dist/` to GitHub Pages on push to
-`main` — it does **not** run `pnpm build`. Run the build and commit `dist/`
-yourself, or the deploy ships the previous bundle.
+`.github/workflows/static.yml` uploads `dist/` to Pages on push to `main` and
+does **not** build. Build and commit `dist/` yourself or it ships the old bundle.
 
 ## Don't break
 
-- **Refresh batches must stay serial** via `reposRefreshChain` — the heaviest
-  endpoint, and the one that hit the secondary rate limit. Manifest pages and
-  description batches run in parallel; descriptions are the next to serialize
-  if rate limits return.
-- **Every continuation after an `await` must re-check `isStale(session)`.**
-  `start()`, `reset()`, and `clearCachedData()` bump `session`; a bare
-  `!this.octokit` check can't tell a superseded chain from a live one once a
-  new token has been pasted in. Covers `finishLoad`/`evictStaleData` too.
-- **`lastAccessedAt` updates only on full success.** Never on abort paths,
-  never to in-memory `settings` — the caught-up divider would jump
-  mid-session.
-- **`wipeCache` clears IDB twice**, before and after draining the in-flight
-  refresh batch, whose queued puts would outlive the first wipe.
-- **`settings.disableCache` bypasses the `repos` store entirely** — no
-  hydration, no refresh batches, no writes — and `evictStaleData` clears the
-  store so an older snapshot can't be served once the toggle goes back off.
-- **`evictStaleDescriptions` takes survivors from the loaded feed**, not the
-  `repos` store, which is empty on a cache-disabled load and would evict
-  every description that load just cached.
+- **Refresh batches stay serial** via `RepoSync.refreshChain` — the endpoint that
+  hit the secondary rate limit. Manifest pages and description batches run in
+  parallel; descriptions serialize next if rate limits return.
+- **Re-check `isStale(sessionId)` after every `await`** (23 sites) against the id
+  the method was handed. `start`/`reset`/`clearCachedData` bump it via
+  `Session.begin()`; `!octokit` alone can't tell a superseded chain from a live
+  one after a new token is pasted in. Teardown (`wipeCache`, `clearCachedData`)
+  uses `isSuperseded` instead — the token is already cleared there, so `isStale`
+  is always true and a logout would abandon its own wipe.
+- **`lastAccessedAt` writes only on full success**, in `Loader.completeLoad`.
+  Never to in-memory `settings`, or the caught-up divider jumps mid-session.
+- **`wipeCache` clears IDB twice**, either side of draining
+  `RepoSync.pendingRefresh`, whose queued puts outlive the first clear.
+- **`Loader.clearState()` resets all three** of `Status`, `FeedStore`, `RepoSync`.
+- **`settings.disableCache` bypasses the `repos` store entirely** — the full
+  query makes every node an `isFullRepo`, so no hydration, batches, or writes —
+  and `CacheEviction` clears it so an old snapshot can't be served on toggle-off.
+- **`FeedStore.descriptionKeys()` is the eviction survivor set**, from the feed,
+  not the `repos` store, which is empty on a cache-disabled load.
 - **`Repository.updatedAt` likely does NOT bump on release-body edits.**
-  Confirmed bumpers are description edits and pushes. If release notes go
-  stale, compare `releases.nodes[0].updatedAt` in the manifest too.
+  Confirmed bumpers: description edits, pushes. If notes go stale, compare
+  `releases.nodes[0].updatedAt` in the manifest too.
 
 ## Gotchas
 
 - **Dual linter**: oxlint-only rules need `// oxlint-disable-next-line <rule>`;
-  bare `// eslint-disable-next-line` errors as "unused" when only oxlint flagged.
-- **`isolatedDeclarations`**: exported `const` from a template literal
-  with `${...}` needs `: string`. Plain template literals infer — prefer
-  inlining over interpolation.
-- **Bare `{const}` in markup is non-reactive** in Svelte 5.56+. Wrap in
-  `$derived` when the value depends on reactive state — see
-  `visibleReleases` in `src/components/releases.svelte`.
-- **`nodes(ids: [...])` returns null** for unresolvable ids; both
-  response types are `Array<T | null>` and filtered. GitHub pairs those
-  nulls with a top-level `NOT_FOUND`, and octokit throws on any `errors`
-  entry — so the batch queries go through `graphqlAllowingPartials`, which
-  recovers the payload from `GraphqlResponseError.data`. Without it one
-  deleted repo discards its whole batch of 20.
+  a bare `// eslint-disable-next-line` errors as unused.
+- **`isolatedDeclarations`**: an exported `const` built from a template literal
+  with `${...}` can't be inferred (TS9010) and needs `: string` — which is why
+  the query constants are annotated and `no-inferrable-types` is off there.
+- **Bare `{const}` in markup is non-reactive** (Svelte 5.56+). Wrap in
+  `$derived` — see `visibleReleases` in `src/components/releases.svelte`.
+- **`nodes(ids: [...])` returns null** for unresolvable ids, paired with a
+  top-level `NOT_FOUND` that makes octokit throw. Batch queries go through
+  `graphqlAllowingPartials` to recover the payload; without it one deleted repo
+  discards its whole batch of 20.
 - **`mergeSorted` sorts its second arg in place.**
-- **`src/db.ts` uses a top-level `await`** on the IDB open, capped at 5s so
-  a tab blocking an upgrade can't hang app start.
-- **Always reach IDB through the `idb*` wrappers in `src/db.ts`** — never the
-  raw connection. Each one swallows an unavailable database and a failed
-  operation, returning `[]`/`undefined`/void, so callers need no `try`/`catch`
-  and the cache can never abort a load.
-- **Adding a `GithubRepository` field**: update the shared `repoFields`
-  fragment (both `reposFullQuery` and `reposByIdsQuery` interpolate it) and
-  the TS interface. Bump the IDB version in `src/db.ts` (currently 4) if you
-  need cached entries cleared.
-- **The exported query constants need `: string`** because they interpolate
-  those fragments — `isolatedDeclarations` (TS9010) can't infer through the
-  interpolation, so `no-inferrable-types` is disabled across that block.
+- **`src/db.ts` uses a top-level `await`** on the IDB open, capped at 5s.
+- **Always reach IDB through the `idb*` wrappers** — each swallows an
+  unavailable DB and a failed op, so no caller needs `try`/`catch` and the cache
+  can never abort a load.
+- **Adding a `GithubRepository` field**: update the shared `repoFields` fragment
+  and the TS interface; bump the IDB version (currently 4) to clear cached rows.
 
 ## Testing
 
-`pnpm test` runs `vitest` (only `helpers.test.ts`, covering `mergeSorted`,
-`chunk`, and `formatRelativeTime`). The loader and components are verified
-manually with a real PAT via `pnpm dev`; the Settings popover has a Debug
-button that dumps loader + settings state to the console.
+`pnpm test` runs `vitest` over `tests/`: `helpers.test.ts` and `loader.test.ts`
+(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test).
+`RepoSync`, `DescriptionSync`, and `CacheEviction` have none — they and the
+components are verified manually with a real PAT via `pnpm dev` (Settings →
+Debug dumps state to the console).
+
+`tests/setup.ts` stubs `IntersectionObserver`, `localStorage`, and `matchMedia`,
+and imports `fake-indexeddb/auto` — jsdom has no IndexedDB, so without it
+`db.ts`'s top-level open fails and logs on every run.

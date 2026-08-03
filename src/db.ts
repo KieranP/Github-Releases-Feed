@@ -50,7 +50,7 @@ function requestDatabase():
           idbp.createObjectStore('descriptions')
         }
         if (oldVersion < 4) {
-          // v4: GithubRepository shape changed (added `updatedAt`) — wipe earlier entries.
+          // v4 added `updatedAt` to GithubRepository — wipe earlier entries.
           if (idbp.objectStoreNames.contains('repos')) {
             idbp.deleteObjectStore('repos')
           }
@@ -88,7 +88,7 @@ export function descriptionKey(id: string, updatedAt: string): string {
   return `${id}-${updatedAt}`
 }
 
-// Every accessor below is a signature over this, so none can throw: no
+// Every accessor below funnels through this, so none can throw: a missing
 // database, a dropped connection, and a quota failure all yield `fallback`.
 async function withDatabase<T>(
   failure: string,

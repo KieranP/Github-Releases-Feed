@@ -4,9 +4,9 @@ import { defineConfig, type ViteUserConfig } from 'vitest/config'
 const config: ViteUserConfig = defineConfig({
   plugins: [svelte()],
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['tests/**/*.test.ts'],
     environment: 'jsdom',
-    setupFiles: ['src/test-setup.ts'],
+    setupFiles: ['tests/setup.ts'],
   },
 })
 

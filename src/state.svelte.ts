@@ -34,7 +34,7 @@ function initialDarkMode(): boolean {
 
 const darkMode = initialDarkMode()
 
-// Drives light-dark() in CSS; applied immediately to avoid a theme flash
+// Drives light-dark() in CSS; applied immediately to avoid a theme flash.
 export function applyColorScheme(dark: boolean): void {
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
 }
@@ -80,7 +80,7 @@ function stringify(value: StorageValue): string {
   return String(value)
 }
 
-// The single writer for persisted state; a Set mutated in place comes back as-is.
+// The only writer for persisted state; stringify handles Sets mutated in place.
 export function persist(key: StorageKey, value: StorageValue): void {
   localStorage.setItem(key, stringify(value))
 }

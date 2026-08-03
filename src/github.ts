@@ -27,7 +27,7 @@ export async function graphqlAllowingPartials<T>(
   }
 }
 
-// Shared by both repo queries. Keep in sync with GithubRepository below.
+// Shared by reposFullQuery and reposByIdsQuery. Keep GithubRepository in sync.
 const repoFields = /* GraphQL */ `
   id
   description
@@ -103,7 +103,7 @@ export const reposFullQuery: string = /* GraphQL */ `
   }
 `
 
-// Cache-enabled loads: repos manifest, 100 a page
+// Cache-enabled loads: repos manifest, 100 a page.
 export const reposManifestQuery: string = /* GraphQL */ `
   query ($cursor: String) {
     viewer {
@@ -222,8 +222,7 @@ export interface GithubStarredReposResponse {
 }
 
 export interface GithubReposByIdsResponse {
-  // nodes(ids: ...) returns null at positions where the id can't be
-  // resolved (e.g. deleted/transferred/now-private repo).
+  // Null wherever an id won't resolve: deleted, transferred, or now private.
   nodes: Array<GithubRepository | null>
   rateLimit: RateLimit
 }

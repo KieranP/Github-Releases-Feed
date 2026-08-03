@@ -47,7 +47,7 @@
     }
   }
 
-  // Close synchronously; popovertargetaction no-ops as the button re-renders away
+  // Close synchronously: popovertargetaction no-ops as the button re-renders.
   function closeMenu(): void {
     popoverElement?.hidePopover()
   }

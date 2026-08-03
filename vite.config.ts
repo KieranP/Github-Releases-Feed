@@ -24,7 +24,7 @@ const config: UserConfig = defineConfig({
   },
   server: {
     headers: {
-      // So performance.now() reports in microseconds
+      // So performance.now() reports in microseconds.
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },

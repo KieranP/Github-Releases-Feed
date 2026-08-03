@@ -1,5 +1,5 @@
-import './reset.css'
-import './global.css'
+import './styles/reset.css'
+import './styles/global.css'
 
 import { mount } from 'svelte'
 

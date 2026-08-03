@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { chunk, formatRelativeTime, mergeSorted } from './helpers'
+import { chunk, formatRelativeTime, mergeSorted } from '../src/helpers'
 
 interface Item {
   key: number

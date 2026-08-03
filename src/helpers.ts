@@ -50,8 +50,8 @@ export function formatRelativeTime(date: Date, now: Date): string {
     if (absDiffMs >= ms) {
       const value = diffMs / ms
       const roundedValue = DECIMAL_UNITS.has(unit)
-        ? Math.round(value * 10) / 10 // round to 1 decimal place
-        : Math.round(value) // round to whole number
+        ? Math.round(value * 10) / 10
+        : Math.round(value)
       return relativeTimeFormatter.format(roundedValue, unit)
     }
   }
@@ -85,6 +85,7 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
   return batches
 }
 
+// Sorts `newItems` in place, then binary-inserts into a copy of `existing`.
 export function mergeSorted<T>(
   existing: readonly T[],
   newItems: T[],

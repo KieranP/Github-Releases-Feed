@@ -11,9 +11,9 @@
     "types:typescript": "tsc --noEmit",
     "types:svelte": "svelte-check --output=human",
     "lint": "pnpm lint:oxlint; pnpm lint:eslint",
-    "lint:oxlint": "oxlint *.ts src/**/*.{ts,svelte}",
-    "lint:eslint": "eslint --concurrency=auto *.ts src/**/*.{ts,svelte}",
-    "format": "oxfmt index.html *.{html,js,ts,json,md} src/**/*.{css,js,ts,svelte}"
+    "lint:oxlint": "oxlint *.ts src/**/*.{ts,svelte} tests/**/*.ts",
+    "lint:eslint": "eslint --concurrency=auto *.ts src/**/*.{ts,svelte} tests/**/*.ts",
+    "format": "oxfmt index.html *.{html,js,ts,json,md} src/**/*.{css,js,ts,svelte} tests/**/*.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -26,6 +26,7 @@
     "eslint": "10.8.0",
     "eslint-plugin-oxlint": "1.76.0",
     "eslint-plugin-svelte": "3.22.0",
+    "fake-indexeddb": "6.2.5",
     "globals": "17.8.0",
     "idb": "8.0.3",
     "jsdom": "30.0.1",

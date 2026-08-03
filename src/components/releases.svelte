@@ -17,6 +17,7 @@
     {/if}
 
     {#if group.releases.length > 0}
+      <!-- A bare {const} is non-reactive in Svelte 5.56+, hence $derived. -->
       {const visibleReleases = $derived(
         group.expanded ? group.releases : group.releases.slice(0, 1),
       )}
