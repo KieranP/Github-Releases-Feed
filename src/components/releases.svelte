@@ -1,13 +1,15 @@
 <script lang="ts">
   import Release from './release.svelte'
 
+  import type { Release as ReleaseModel } from '../models/release.svelte'
   import type { ReleaseGroup } from '../models/release_group.svelte'
 
   interface Props {
+    onshowdescription: (release: ReleaseModel) => void
     releaseGroups: ReleaseGroup[]
   }
 
-  const { releaseGroups }: Props = $props()
+  const { onshowdescription, releaseGroups }: Props = $props()
 </script>
 
 <main id="releases">
@@ -25,7 +27,10 @@
 
       <div class="release_group">
         {#each visibleReleases as release (release.data.id)}
-          <Release {release} />
+          <Release
+            {onshowdescription}
+            {release}
+          />
         {/each}
 
         {#if hiddenCount > 0}

@@ -54,12 +54,26 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 - **Refresh batches stay serial** via `RepoSync.refreshChain` — the endpoint that
   hit the secondary rate limit. Manifest pages and description batches run in
   parallel; descriptions serialize next if rate limits return.
-- **Re-check `isStale(sessionId)` after every `await`** (23 sites) against the id
+- **Release notes are only prefetched for cards that will render.**
+  `RepoSync.mergeIntoFeed` filters on `isDisplayable`; hidden and ignored ones
+  fetch from `release.svelte`'s intersect handler if a setting reveals them.
+  `DescriptionSync.enqueue` coalesces those on a microtask, since one
+  IntersectionObserver callback delivers a screenful and a request per card
+  trips the rate limit. `Release.descriptionRequested`, claimed before the first
+  `await` in `fetchAll`, stops both paths fetching the first screenful.
+- **Re-check `isStale(sessionId)` after every `await`** (24 sites) against the id
   the method was handed. `start`/`reset`/`clearCachedData` bump it via
   `Session.begin()`; `!octokit` alone can't tell a superseded chain from a live
   one after a new token is pasted in. Teardown (`wipeCache`, `clearCachedData`)
   uses `isSuperseded` instead — the token is already cleared there, so `isStale`
   is always true and a logout would abandon its own wipe.
+- **`Session.begin()` also aborts.** It swaps in a fresh `AbortController`, and
+  `octokit` derives off it, so every client carries the signal for the session
+  that built it. The id checks still do the work of rejecting late results; the
+  signal is what stops a superseded load from billing its requests against the
+  rate limit anyway. The abort surfaces as a rejection inside `RetryRunner.run`,
+  which bails on `isStale` **before** logging — else every logout spams
+  AbortErrors that read like failures.
 - **`lastAccessedAt` writes only on full success**, in `Loader.completeLoad`.
   Never to in-memory `settings`, or the caught-up divider jumps mid-session.
 - **`wipeCache` clears IDB twice**, either side of draining
@@ -79,6 +93,12 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   that was how a non-fatal description failure got wiped by an unrelated page
   landing, and how it then stuck around forever once pages stopped arriving.
   `clearToasts()` is teardown only (logout, and login under a new token).
+- **One retry policy per concurrent source.** The manifest pass and the refresh
+  chain run at the same time, so they hold `MANIFEST_RETRY_POLICY` and
+  `REFRESH_RETRY_POLICY` separately — sharing a key meant a landing page
+  retracting a batch's live retry warning, the same bug one level down.
+  Manifest pages do share a key with each other, which is intended: they're one
+  source, and the ladder should read as one message.
 - **The fire-and-forget chains catch their own throws.** `run()` and the
   pagination recursion are entered with `void`, so a throw escaping
   `processStarredReposPage` or `runRefreshBatch` would be an unhandled rejection:

@@ -8,6 +8,7 @@ import { Session } from './session.svelte'
 import { forget, persist, settings } from './state.svelte'
 import { Status, type Toast } from './status.svelte'
 
+import type { Release } from './models/release.svelte'
 import type { ReleaseGroup } from './models/release_group.svelte'
 
 // Wires the sync pipeline together and owns the three entry points the UI
@@ -75,6 +76,11 @@ class Loader {
 
   public clearToasts(): void {
     this.status.clearToasts()
+  }
+
+  // A card the prefetch passed over reached the viewport.
+  public loadDescription(release: Release): void {
+    this.descriptions.enqueue(this.session.current, release)
   }
 
   // No-op if no GitHub token is configured.

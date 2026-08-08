@@ -9,26 +9,21 @@
   import { loader } from './loader.svelte'
   import { persist, settings } from './state.svelte'
 
+  import type { Release } from './models/release.svelte'
+
   const loading = $derived(loader.loading)
   const progress = $derived(loader.progress)
   const releaseGroups = $derived(loader.groups)
   const toasts = $derived(loader.toasts)
 
-  function saveGithubToken(inputValue: string): boolean {
-    if (!inputValue) return false
-
-    settings.githubToken = inputValue
-    persist('githubToken', inputValue)
-    return true
-  }
-
   function onlogin(inputValue: string): void {
     if (!inputValue) return
 
-    if (saveGithubToken(inputValue)) {
-      loader.clearToasts()
-      loader.start()
-    }
+    settings.githubToken = inputValue
+    persist('githubToken', inputValue)
+
+    loader.clearToasts()
+    loader.start()
   }
 
   function onlogout(): void {
@@ -46,6 +41,10 @@
 
   function ondismisstoast(key: string): void {
     loader.dismissToast(key)
+  }
+
+  function onshowdescription(release: Release): void {
+    loader.loadDescription(release)
   }
 
   function ondebug(): void {
@@ -82,7 +81,10 @@
     <ProgressBar {progress} />
   {/if}
 
-  <Releases {releaseGroups} />
+  <Releases
+    {onshowdescription}
+    {releaseGroups}
+  />
 {:else}
   <Login {onlogin} />
 {/if}

@@ -17,15 +17,15 @@ exposes the four values the UI reads, and owns the three entry points. Each
 stage holds one job and only the dependencies it uses, and each lives in its own
 flat module beside `loader.svelte.ts`.
 
-| Unit              | Owns                                                 | Depends on                            |
-| ----------------- | ---------------------------------------------------- | ------------------------------------- |
-| `Session`         | octokit client, session id, `isStale`/`isSuperseded` | `settings`                            |
-| `Status`          | `loading`, `toast`, progress counters, timings       | —                                     |
-| `FeedStore`       | `releases` + indexes, `groups` derived               | `settings`                            |
-| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown             | `Session`, `Status`                   |
-| `RepoSync`        | manifest pagination, serial refresh chain            | all of the above, `DescriptionSync`   |
-| `DescriptionSync` | release notes per merged batch                       | `Session`, `FeedStore`, `RetryRunner` |
-| `CacheEviction`   | the two once-a-day IDB sweeps                        | `Session`, `FeedStore`                |
+| Unit              | Owns                                           | Depends on                            |
+| ----------------- | ---------------------------------------------- | ------------------------------------- |
+| `Session`         | octokit client, session id + abort, `isStale`  | `settings`                            |
+| `Status`          | `loading`, `toast`, progress counters, timings | —                                     |
+| `FeedStore`       | `releases` + indexes, `groups` derived         | `settings`                            |
+| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown       | `Session`, `Status`                   |
+| `RepoSync`        | manifest pagination, serial refresh chain      | all of the above, `DescriptionSync`   |
+| `DescriptionSync` | release notes, prefetched or on demand         | `Session`, `FeedStore`, `RetryRunner` |
+| `CacheEviction`   | the two once-a-day IDB sweeps                  | `Session`, `FeedStore`                |
 
 Two edges are inverted so nothing points back at `Loader` except by callback:
 `RetryRunner` gets an `onAuthFailure` hook (a 401 means the whole session goes),
@@ -33,6 +33,15 @@ and `RepoSync` gets an `onComplete` hook, which is the only path that reaches
 `lastAccessedAt` and eviction. `FeedStore.merge()` returns the releases that
 landed rather than kicking off description fetches itself, which keeps the feed
 independent of the network stages.
+
+Release notes have two entry points. `RepoSync.mergeIntoFeed` prefetches for the
+releases that pass `isDisplayable` — the only ones a card will be rendered for —
+and everything else waits: `release.svelte`'s intersect handler calls back up to
+`Loader.loadDescription` if a settings toggle ever puts that card on screen.
+Those arrive one at a time and in screenful-sized bursts, so `enqueue` coalesces
+a burst onto a microtask before batching it. `Release.descriptionRequested`,
+claimed synchronously in `fetchAll`, is what keeps the two paths from both
+fetching the first screenful.
 
 The **Disable Repo Cache** setting (`settings.disableCache`) swaps the manifest
 pass for `reposFullQuery`, which pages whole repositories 20 at a time — the
@@ -91,8 +100,13 @@ flowchart TD
   extract["extractReleases, in-window only"]:::fn --> mergeSorted["mergeSorted with releaseSortFn"]:::fn
   mergeSorted --> releasesState[("FeedStore: releases, releasesIndex, releasesByRepo")]:::state
   releasesState --> groupsState[("groups derived, caught-up divider")]:::state
-  extract --> loadDescriptions["descriptions.load, fire and forget"]:::fn
-  loadDescriptions --> descCache[("db.get descriptions")]:::io
+  extract --> displayable{"isDisplayable?"}
+  displayable -->|no| onScreen(["card intersects, later"]):::ext
+  onScreen --> enqueue["descriptions.enqueue, coalesced on a microtask"]:::fn
+  enqueue --> loadDescriptions
+  displayable -->|yes| loadDescriptions["descriptions.load, fire and forget"]:::fn
+  loadDescriptions --> claim["claim descriptionRequested, skip what's taken"]:::fn
+  claim --> descCache[("db.get descriptions")]:::io
   descCache -->|hit| attachDesc["feed.attachDescription"]:::fn
   descCache -->|miss, batches of 20| fetchBatch["fetchBatch retries 3x"]:::fn
   fetchBatch --> gqlDesc{{"descriptionQuery"}}:::ext

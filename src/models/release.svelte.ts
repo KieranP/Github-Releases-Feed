@@ -8,6 +8,9 @@ export class Release {
 
   public descriptionEnteredViewport: boolean = $state(false)
 
+  // Not rendered, so not $state. Claimed by whichever path gets here first.
+  public descriptionRequested = false
+
   private readonly descriptionIsLoading: boolean = $derived(
     this.data.descriptionHTML === undefined,
   )

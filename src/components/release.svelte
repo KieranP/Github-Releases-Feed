@@ -13,10 +13,11 @@
   import type { Release } from '../models/release.svelte'
 
   interface Props {
+    onshowdescription: (release: Release) => void
     release: Release
   }
 
-  const { release }: Props = $props()
+  const { onshowdescription, release }: Props = $props()
 
   let popoverElement: HTMLDivElement | undefined = $state()
 
@@ -39,6 +40,8 @@
   }: CustomEvent<IntersectionObserverEntry>): void {
     if (isIntersecting) {
       release.descriptionEnteredViewport = true
+      // Covers the cards the prefetch skipped.
+      onshowdescription(release)
       intersectionObserver.unobserve(target)
     }
   }

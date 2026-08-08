@@ -17,11 +17,20 @@ export interface RetryPolicy {
   fatal: boolean
 }
 
-// Manifest pages and repo refreshes: the load can't complete without them.
-export const REQUEST_RETRY_POLICY: RetryPolicy = {
-  key: 'request',
+// Manifest pages: nothing can be enumerated without them.
+export const MANIFEST_RETRY_POLICY: RetryPolicy = {
+  key: 'manifest',
   retrying: 'Request Failed',
   exhausted: 'Repeated Request Failures - Aborting',
+  fatal: true,
+}
+
+// Its own key: it runs alongside the manifest pass, and a landing page must
+// not retract a batch's warning.
+export const REFRESH_RETRY_POLICY: RetryPolicy = {
+  key: 'refresh',
+  retrying: 'Repo Refresh Failed',
+  exhausted: 'Repeated Refresh Failures - Aborting',
   fatal: true,
 }
 
@@ -136,6 +145,9 @@ export class RetryRunner {
         const value = await attempt()
         if (value !== undefined) return value
       } catch (error: unknown) {
+        // Bail before logging: a superseded session aborts its own requests.
+        if (this.session.isStale(sessionId)) return undefined
+
         console.error(error)
         if (this.handleAuthError(sessionId, error)) return undefined
         waitMs = rateLimitWaitMs(error, Date.now())

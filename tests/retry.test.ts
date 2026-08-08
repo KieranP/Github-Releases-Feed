@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   DESCRIPTION_RETRY_POLICY,
-  REQUEST_RETRY_POLICY,
+  MANIFEST_RETRY_POLICY,
   RetryRunner,
 } from '../src/retry'
 import { Session } from '../src/session.svelte'
@@ -75,7 +75,7 @@ describe('RetryRunner', () => {
     attempt.mockResolvedValue('ok')
 
     await expect(
-      runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt),
+      runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt),
     ).resolves.toBe('ok')
     expect(status.toasts).toEqual([])
   })
@@ -116,7 +116,7 @@ describe('RetryRunner', () => {
     const attempt = attemptStub()
     attempt.mockRejectedValue(new Error('boom'))
 
-    const running = runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt)
+    const running = runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt)
     await vi.runAllTimersAsync()
     await running
 
@@ -129,12 +129,12 @@ describe('RetryRunner', () => {
     attempt.mockRejectedValueOnce(requestError(['retry-after', '2']))
     attempt.mockResolvedValue('ok')
 
-    const running = runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt)
+    const running = runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt)
 
     await vi.advanceTimersByTimeAsync(500)
     expect(attempt).toHaveBeenCalledTimes(1)
     expect(status.toasts).toEqual([
-      { key: 'request', message: 'ERROR: Rate limited - retrying in 2s' },
+      { key: 'manifest', message: 'ERROR: Rate limited - retrying in 2s' },
     ])
 
     await vi.advanceTimersByTimeAsync(1500)
@@ -153,12 +153,12 @@ describe('RetryRunner', () => {
     )
     attempt.mockResolvedValue('ok')
 
-    const running = runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt)
+    const running = runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt)
 
     await vi.advanceTimersByTimeAsync(1000)
     expect(attempt).toHaveBeenCalledTimes(1)
     expect(status.toasts).toEqual([
-      { key: 'request', message: 'ERROR: Rate limited - retrying in 30s' },
+      { key: 'manifest', message: 'ERROR: Rate limited - retrying in 30s' },
     ])
 
     await vi.advanceTimersByTimeAsync(29_000)
@@ -176,14 +176,14 @@ describe('RetryRunner', () => {
     )
     attempt.mockResolvedValue('ok')
 
-    const running = runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt)
+    const running = runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt)
 
     await vi.advanceTimersByTimeAsync(500)
     expect(attempt).toHaveBeenCalledTimes(2)
     expect(status.toasts).toEqual([
       {
-        key: 'request',
-        message: `ERROR: ${REQUEST_RETRY_POLICY.retrying} - Retry #1`,
+        key: 'manifest',
+        message: `ERROR: ${MANIFEST_RETRY_POLICY.retrying} - Retry #1`,
       },
     ])
 
@@ -201,13 +201,13 @@ describe('RetryRunner', () => {
     )
 
     await expect(
-      runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt),
+      runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt),
     ).resolves.toBeUndefined()
 
     expect(attempt).toHaveBeenCalledTimes(1)
     expect(status.toasts).toEqual([
       {
-        key: 'request',
+        key: 'manifest',
         message: 'ERROR: Rate limited - try again in 10 minutes',
       },
     ])
@@ -220,7 +220,7 @@ describe('RetryRunner', () => {
     attempt.mockRejectedValue({ status: 401 })
 
     await expect(
-      runner.run(SESSION_ID, REQUEST_RETRY_POLICY, attempt),
+      runner.run(SESSION_ID, MANIFEST_RETRY_POLICY, attempt),
     ).resolves.toBeUndefined()
 
     expect(attempt).toHaveBeenCalledTimes(1)

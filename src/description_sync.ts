@@ -19,13 +19,16 @@ interface DescriptionSyncDeps {
   retry: RetryRunner
 }
 
-// Release notes for a batch of freshly merged releases: IDB first, then one
-// GraphQL round trip per 20 misses. Failures leave a card blank, never abort
-// the load.
+// Release notes: IDB first, then one GraphQL round trip per 20 misses. Reached
+// by the prefetch and by the viewport. A failure leaves a card blank, never
+// aborts the load.
 export class DescriptionSync {
   private readonly session: Session
   private readonly feed: FeedStore
   private readonly retry: RetryRunner
+
+  private queued: Release[] = []
+  private flushQueued = false
 
   public constructor(deps: DescriptionSyncDeps) {
     this.session = deps.session
@@ -42,18 +45,46 @@ export class DescriptionSync {
     }
   }
 
+  // One card at a time; a request each would trip the rate limit.
+  public enqueue(sessionId: number, release: Release): void {
+    this.queued.push(release)
+    if (this.flushQueued) return
+
+    this.flushQueued = true
+    void this.flush(sessionId)
+  }
+
+  // The burst has finished by the time this resumes.
+  private async flush(sessionId: number): Promise<void> {
+    await Promise.resolve()
+
+    const releases = this.queued
+    this.queued = []
+    this.flushQueued = false
+
+    await this.load(sessionId, releases)
+  }
+
   // Attach cached entries from IDB, then batch-fetch the rest.
   private async fetchAll(
     sessionId: number,
     releases: Release[],
   ): Promise<void> {
-    if (this.session.isStale(sessionId) || releases.length === 0) return
+    if (this.session.isStale(sessionId)) return
+
+    // Claim before the first await, so an overlapping call can't take them too.
+    const pending = releases.filter(
+      (release): boolean => !release.descriptionRequested,
+    )
+    if (pending.length === 0) return
+
+    for (const release of pending) release.descriptionRequested = true
 
     const uncachedReleaseIds: string[] = []
 
     // A miss and a failed read are the same thing here: refetch it.
     await Promise.all(
-      releases.map(async (release): Promise<void> => {
+      pending.map(async (release): Promise<void> => {
         const description = await idbGet(
           'descriptions',
           descriptionKey(release.data.id, release.data.updatedAt),

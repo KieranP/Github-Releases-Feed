@@ -11,7 +11,12 @@ import {
 } from './github'
 import { chunk, formatRelativeTime } from './helpers'
 import { isReleaseInWindow } from './release_window'
-import { REQUEST_RETRY_POLICY, type RetryRunner } from './retry'
+import {
+  MANIFEST_RETRY_POLICY,
+  REFRESH_RETRY_POLICY,
+  type RetryPolicy,
+  type RetryRunner,
+} from './retry'
 import { settings } from './state.svelte'
 
 import type { DescriptionSync } from './description_sync'
@@ -122,7 +127,7 @@ export class RepoSync {
     try {
       await this.processStarredReposPage(sessionId, response)
     } catch (error) {
-      this.abortLoad(sessionId, error)
+      this.abortLoad(sessionId, MANIFEST_RETRY_POLICY, error)
     }
   }
 
@@ -136,7 +141,7 @@ export class RepoSync {
 
     const page = await this.retry.run(
       sessionId,
-      REQUEST_RETRY_POLICY,
+      MANIFEST_RETRY_POLICY,
       async (): Promise<GithubStarredReposResponse | undefined> => {
         const { octokit } = this.session
         if (!octokit) return undefined
@@ -180,8 +185,8 @@ export class RepoSync {
 
     this.status.countRepos(totalCount)
 
-    // A page landed: retract this policy's warning, and nothing else.
-    this.status.dismiss(REQUEST_RETRY_POLICY.key)
+    // A page landed: retract the manifest warning, and nothing else.
+    this.status.dismiss(MANIFEST_RETRY_POLICY.key)
 
     const shouldContinue =
       pageInfo.hasNextPage && response.rateLimit.remaining > 0
@@ -236,13 +241,16 @@ export class RepoSync {
     }
   }
 
-  // Merge into the sorted feed, then fetch notes for whatever landed.
+  // Merge into the sorted feed, then prefetch notes for the cards that render.
   private mergeIntoFeed(sessionId: number, repos: GithubRepository[]): void {
     const startProcessingTime = performance.now()
 
-    const newReleases = this.feed.merge(repos)
-    if (newReleases.length > 0) {
-      void this.descriptions.load(sessionId, newReleases)
+    const displayable = this.feed
+      .merge(repos)
+      .filter((release): boolean => release.isDisplayable)
+
+    if (displayable.length > 0) {
+      void this.descriptions.load(sessionId, displayable)
     }
 
     this.status.addProcessingTime(performance.now() - startProcessingTime)
@@ -270,7 +278,7 @@ export class RepoSync {
 
       return await this.refreshRepos(sessionId, repoIds)
     } catch (error) {
-      this.abortLoad(sessionId, error)
+      this.abortLoad(sessionId, REFRESH_RETRY_POLICY, error)
       return true
     }
   }
@@ -282,7 +290,7 @@ export class RepoSync {
   ): Promise<boolean> {
     const aborted = await this.retry.run(
       sessionId,
-      REQUEST_RETRY_POLICY,
+      REFRESH_RETRY_POLICY,
       async (): Promise<boolean | undefined> => {
         const { octokit } = this.session
         if (!octokit || this.session.isStale(sessionId)) return true
@@ -302,7 +310,7 @@ export class RepoSync {
         // Missing response — retry.
         if (!response) return undefined
 
-        this.status.dismiss(REQUEST_RETRY_POLICY.key)
+        this.status.dismiss(REFRESH_RETRY_POLICY.key)
 
         // Unresolvable ids come back null; trim the rest to the window.
         const resolvedById = new Map<string, GithubRepository>()
@@ -386,15 +394,16 @@ export class RepoSync {
   }
 
   // Last by DFS. The only report for a throw escaping a fire-and-forget chain.
-  private abortLoad(sessionId: number, error: unknown): void {
+  private abortLoad(
+    sessionId: number,
+    policy: RetryPolicy,
+    error: unknown,
+  ): void {
     console.error(error)
 
     if (this.session.isStale(sessionId)) return
 
-    this.status.notify(
-      REQUEST_RETRY_POLICY.key,
-      `ERROR: ${REQUEST_RETRY_POLICY.exhausted}`,
-    )
+    this.status.notify(policy.key, `ERROR: ${policy.exhausted}`)
     // finishLoad bails on abort, so stop the spinner here.
     this.status.loading = false
   }
