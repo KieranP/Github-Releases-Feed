@@ -154,6 +154,20 @@ export const descriptionQuery: string = /* GraphQL */ `
 
 /* eslint-enable @typescript-eslint/no-inferrable-types */
 
+// The signed filename is `<numeric id>-<asset uuid>.<ext>`, and that uuid is
+// the permanent asset's own — so the stable URL rebuilds from the expiring one.
+const SIGNED_ASSET_URL =
+  /https:\/\/private-user-images\.githubusercontent\.com\/\d+\/\d+-(?<assetId>[0-9a-f-]{36})\.\w+\?jwt=[\w.-]+/gu
+
+// `descriptionHTML` renders attachments as URLs that expire in five minutes,
+// which outlive neither the cache nor a card left unread. Swap in the redirect.
+export function stabiliseAssetUrls(html: string): string {
+  return html.replace(
+    SIGNED_ASSET_URL,
+    'https://github.com/user-attachments/assets/$<assetId>',
+  )
+}
+
 // An unnamed release falls back to its tag; a draft has no publish date.
 interface GithubRelease {
   id: string

@@ -24,8 +24,9 @@ const config: UserConfig = defineConfig({
   },
   server: {
     headers: {
-      // So performance.now() reports in microseconds.
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      // So performance.now() reports in microseconds. `credentialless` rather
+      // than `require-corp`: release-note images carry no CORP header.
+      'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
   },

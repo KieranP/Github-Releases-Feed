@@ -3,6 +3,7 @@ import {
   descriptionQuery,
   type GithubReleaseResponse,
   graphqlAllowingPartials,
+  stabiliseAssetUrls,
 } from './github'
 import { chunk } from './helpers'
 import { DESCRIPTION_RETRY_POLICY, type RetryRunner } from './retry'
@@ -93,7 +94,11 @@ export class DescriptionSync {
         if (description === undefined) {
           uncachedReleaseIds.push(release.data.id)
         } else {
-          this.feed.attachDescription(release.data.id, description)
+          // Rows cached before the rewrite landed still hold expiring URLs.
+          this.feed.attachDescription(
+            release.data.id,
+            stabiliseAssetUrls(description),
+          )
         }
       }),
     )
@@ -138,17 +143,18 @@ export class DescriptionSync {
           const release = this.feed.find(releaseNode.id)
           if (!release) continue
 
+          const descriptionHTML = stabiliseAssetUrls(
+            releaseNode.descriptionHTML,
+          )
+
           // Key on the release's own updatedAt; reads and eviction use that.
           void idbPut(
             'descriptions',
-            releaseNode.descriptionHTML,
+            descriptionHTML,
             descriptionKey(release.data.id, release.data.updatedAt),
           )
 
-          this.feed.attachDescription(
-            releaseNode.id,
-            releaseNode.descriptionHTML,
-          )
+          this.feed.attachDescription(releaseNode.id, descriptionHTML)
         }
 
         return true
