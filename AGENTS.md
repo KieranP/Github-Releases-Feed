@@ -7,9 +7,11 @@ Personalized feed of GitHub releases for starred repos.
 
 ## Layout
 
-- `src/App.svelte` — entry: starts the loader on mount, wires login/logout.
+- `src/App.svelte` — entry: starts the loader on mount, and the only place that
+  touches the `loader` singleton — every component below takes callback props.
 - `src/loader.svelte.ts` — façade over the pipeline: `start`/`reset`/
-  `clearCachedData` + the `loading`/`progress`/`groups`/`toast` getters.
+  `clearCachedData`/`dismissToast`/`clearToasts` + the
+  `loading`/`progress`/`groups`/`toasts` getters.
 - Pipeline, flat siblings so none imports back out of a folder (see
   `IMPLEMENTATION.md`): `session.svelte.ts` (octokit + staleness),
   `status.svelte.ts`, `feed.svelte.ts` (releases + `groups`), `repo_sync.ts`
@@ -71,6 +73,16 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 - **`Repository.updatedAt` likely does NOT bump on release-body edits.**
   Confirmed bumpers: description edits, pushes. If notes go stale, compare
   `releases.nodes[0].updatedAt` in the manifest too.
+- **Toasts are keyed, and only their own key may clear them.** `Status.notify`
+  replaces the entry for a key so a retry ladder reads as one changing message;
+  `dismiss(key)` retracts exactly one source. Never clear the lot on a success —
+  that was how a non-fatal description failure got wiped by an unrelated page
+  landing, and how it then stuck around forever once pages stopped arriving.
+  `clearToasts()` is teardown only (logout, and login under a new token).
+- **The fire-and-forget chains catch their own throws.** `run()` and the
+  pagination recursion are entered with `void`, so a throw escaping
+  `processStarredReposPage` or `runRefreshBatch` would be an unhandled rejection:
+  no toast, no log, spinner up forever. Both funnel into `RepoSync.abortLoad`.
 
 ## Gotchas
 
@@ -92,14 +104,27 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   can never abort a load.
 - **Adding a `GithubRepository` field**: update the shared `repoFields` fragment
   and the TS interface; bump the IDB version (currently 4) to clear cached rows.
+- **GraphQL nullability is declared, so lint forces you to handle it**: a repo
+  `description`, and a release `name` and `publishedAt`, are all nullable.
+  `isReleaseInWindow` is a type guard that drops the null (draft) date, which is
+  what lets `extractReleases` build a non-null `ReleaseObj.publishedAt`.
+- **Retries honour GitHub's own backoff** — `retry-after`, or
+  `x-ratelimit-reset` once `x-ratelimit-remaining` is `0` — in place of the
+  exponential ladder, which otherwise spends every attempt inside the window.
+  A wait past `MAX_RATE_LIMIT_WAIT_MS` gives up and names the time instead.
 
 ## Testing
 
-`pnpm test` runs `vitest` over `tests/`: `helpers.test.ts` and `loader.test.ts`
-(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test).
+`pnpm test` runs `vitest` over `tests/`: `helpers.test.ts`, `loader.test.ts`
+(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test), and
+`retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown).
 `RepoSync`, `DescriptionSync`, and `CacheEviction` have none — they and the
 components are verified manually with a real PAT via `pnpm dev` (Settings →
 Debug dumps state to the console).
+
+`retry.test.ts` stubs `Session.isStale` rather than setting a token: the token is
+a module singleton, so a test that sets it would leak into every other spec in
+the file. It drives `delay` with `vi.useFakeTimers()`.
 
 `tests/setup.ts` stubs `IntersectionObserver`, `localStorage`, and `matchMedia`,
 and imports `fake-indexeddb/auto` — jsdom has no IndexedDB, so without it

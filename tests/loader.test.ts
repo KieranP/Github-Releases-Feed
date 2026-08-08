@@ -70,6 +70,70 @@ describe('Status', () => {
     status.clear()
     expect(status.progress).toBe(0)
   })
+
+  it('leaves the toasts alone when clearing the counters', () => {
+    const status = new Status()
+    status.notify('request', 'ERROR: boom')
+    status.clear()
+    expect(status.toasts).toHaveLength(1)
+  })
+})
+
+describe('Status toasts', () => {
+  it('stacks one entry per key', () => {
+    const status = new Status()
+    status.notify('request', 'ERROR: a')
+    status.notify('descriptions', 'ERROR: b')
+
+    expect(status.toasts.map((t) => t.message)).toEqual([
+      'ERROR: a',
+      'ERROR: b',
+    ])
+  })
+
+  it('replaces in place rather than repeating a key', () => {
+    const status = new Status()
+    status.notify('request', 'Retry #1')
+    status.notify('descriptions', 'ERROR: notes')
+    status.notify('request', 'Retry #2')
+
+    expect(status.toasts).toEqual([
+      { key: 'request', message: 'Retry #2' },
+      { key: 'descriptions', message: 'ERROR: notes' },
+    ])
+  })
+
+  // The bug this replaced: a success anywhere wiped every outstanding error.
+  it('dismisses only the named key', () => {
+    const status = new Status()
+    status.notify('request', 'ERROR: a')
+    status.notify('descriptions', 'ERROR: b')
+
+    status.dismiss('request')
+
+    expect(status.toasts).toEqual([
+      { key: 'descriptions', message: 'ERROR: b' },
+    ])
+  })
+
+  it('ignores a dismissal for a key it never raised', () => {
+    const status = new Status()
+    status.notify('request', 'ERROR: a')
+
+    status.dismiss('nothing-here')
+
+    expect(status.toasts).toHaveLength(1)
+  })
+
+  it('drops everything on teardown', () => {
+    const status = new Status()
+    status.notify('request', 'ERROR: a')
+    status.notify('descriptions', 'ERROR: b')
+
+    status.clearToasts()
+
+    expect(status.toasts).toEqual([])
+  })
 })
 
 describe('Session', () => {
@@ -113,6 +177,16 @@ describe('FeedStore', () => {
   it('drops out-of-window releases', () => {
     const feed = new FeedStore()
     expect(feed.merge([repoFixture('a', outOfWindow)])).toHaveLength(0)
+    expect(feed.find('a-rel')).toBeUndefined()
+  })
+
+  it('drops a release with no published date', () => {
+    const feed = new FeedStore()
+    const repo = repoFixture('a', inWindow)
+    const [release] = repo.releases.nodes
+    if (release) release.publishedAt = null
+
+    expect(feed.merge([repo])).toHaveLength(0)
     expect(feed.find('a-rel')).toBeUndefined()
   })
 
@@ -167,11 +241,11 @@ describe('loader wiring', () => {
     expect(loader.loading).toBe(false)
     expect(loader.progress).toBe(0)
     expect(loader.groups).toEqual([])
-    expect(loader.toast).toBe('')
+    expect(loader.toasts).toEqual([])
 
-    loader.toast = 'hello'
-    expect(loader.toast).toBe('hello')
-    loader.toast = ''
+    loader.clearToasts()
+    loader.dismissToast('request')
+    expect(loader.toasts).toEqual([])
 
     // No token configured, so this must be a no-op rather than a throw.
     loader.start()

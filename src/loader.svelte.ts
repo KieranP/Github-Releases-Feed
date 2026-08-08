@@ -6,7 +6,7 @@ import { RepoSync } from './repo_sync'
 import { RetryRunner } from './retry'
 import { Session } from './session.svelte'
 import { forget, persist, settings } from './state.svelte'
-import { Status } from './status.svelte'
+import { Status, type Toast } from './status.svelte'
 
 import type { ReleaseGroup } from './models/release_group.svelte'
 
@@ -65,13 +65,16 @@ class Loader {
     return this.feed.groups
   }
 
-  public get toast(): string {
-    return this.status.toast
+  public get toasts(): Toast[] {
+    return this.status.toasts
   }
 
-  // Login clears a leftover error before starting the next load.
-  public set toast(value: string) {
-    this.status.toast = value
+  public dismissToast(key: string): void {
+    this.status.dismiss(key)
+  }
+
+  public clearToasts(): void {
+    this.status.clearToasts()
   }
 
   // No-op if no GitHub token is configured.
@@ -100,7 +103,7 @@ class Loader {
     void this.wipeCache(sessionId, this.repos.pendingRefresh)
 
     this.status.loading = false
-    this.status.toast = ''
+    this.status.clearToasts()
 
     this.clearState()
   }

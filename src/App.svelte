@@ -5,14 +5,14 @@
   import ProgressBar from './components/progress_bar.svelte'
   import Releases from './components/releases.svelte'
   import Settings from './components/settings.svelte'
-  import Toast from './components/toast.svelte'
+  import Toasts from './components/toasts.svelte'
   import { loader } from './loader.svelte'
   import { persist, settings } from './state.svelte'
 
   const loading = $derived(loader.loading)
   const progress = $derived(loader.progress)
   const releaseGroups = $derived(loader.groups)
-  const toast = $derived(loader.toast)
+  const toasts = $derived(loader.toasts)
 
   function saveGithubToken(inputValue: string): boolean {
     if (!inputValue) return false
@@ -26,7 +26,7 @@
     if (!inputValue) return
 
     if (saveGithubToken(inputValue)) {
-      loader.toast = ''
+      loader.clearToasts()
       loader.start()
     }
   }
@@ -35,12 +35,25 @@
     loader.reset()
   }
 
+  // Wired here so no component below has to know the singleton exists.
+  function onreload(): void {
+    loader.start()
+  }
+
+  function onclearcache(): void {
+    void loader.clearCachedData()
+  }
+
+  function ondismisstoast(key: string): void {
+    loader.dismissToast(key)
+  }
+
   function ondebug(): void {
     console.log(
       JSON.stringify({
         loading,
         progress,
-        toast,
+        toasts,
         settings: {
           ...settings,
           githubToken: settings.githubToken?.slice(0, 11),
@@ -58,8 +71,10 @@
 </script>
 
 <Settings
+  {onclearcache}
   {ondebug}
   {onlogout}
+  {onreload}
 />
 
 {#if settings.githubToken}
@@ -72,6 +87,7 @@
   <Login {onlogin} />
 {/if}
 
-{#if toast}
-  <Toast {toast} />
-{/if}
+<Toasts
+  {ondismisstoast}
+  {toasts}
+/>

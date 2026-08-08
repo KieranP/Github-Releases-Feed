@@ -25,6 +25,10 @@
   const owner = $derived(repo.owner)
   const licenseInfo = $derived(repo.licenseInfo)
 
+  const title = $derived(
+    data.name === null || data.name === '' ? data.tagName : data.name,
+  )
+
   // isIgnoredPrerelease is false on a stable release, so the menu can't use it.
   const prereleasesIgnored = $derived(
     settings.ignoredPrereleases.has(repo.fullName),
@@ -110,7 +114,9 @@
         released
 
         <div class="tooltip">
-          <p>{repo.description}</p>
+          {#if repo.description}
+            <p>{repo.description}</p>
+          {/if}
 
           <div class="metrics">
             {#if repo.primaryLanguage}
@@ -204,7 +210,7 @@
     <a
       href={data.url}
       rel="noopener noreferrer"
-      target="_blank">{data.name || data.tagName}</a
+      target="_blank">{title}</a
     >
 
     {#if data.isPrerelease}
@@ -314,7 +320,8 @@
           }
         }
 
-        a:hover {
+        /* Focus too, or the tooltip is keyboard-unreachable. */
+        a:is(:hover, :focus-visible) {
           & + .tooltip {
             display: block;
           }

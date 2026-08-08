@@ -66,10 +66,11 @@ const repoFields = /* GraphQL */ `
   url
 `
 
-// Only `remaining` is ever read.
+// `resetAt` only ever reaches the toast that reports the limit was hit.
 const rateLimitFields = /* GraphQL */ `
   rateLimit {
     remaining
+    resetAt
   }
 `
 
@@ -153,11 +154,12 @@ export const descriptionQuery: string = /* GraphQL */ `
 
 /* eslint-enable @typescript-eslint/no-inferrable-types */
 
+// An unnamed release falls back to its tag; a draft has no publish date.
 interface GithubRelease {
   id: string
   isPrerelease: boolean
-  name: string
-  publishedAt: string
+  name: string | null
+  publishedAt: string | null
   tagName: string
   updatedAt: string
   url: string
@@ -165,7 +167,7 @@ interface GithubRelease {
 
 export interface GithubRepository {
   id: string
-  description: string
+  description: string | null
   languages: {
     nodes: Array<{
       id: string
@@ -195,6 +197,7 @@ export interface GithubRepository {
 
 interface RateLimit {
   remaining: number
+  resetAt: string
 }
 
 interface PageInfo {

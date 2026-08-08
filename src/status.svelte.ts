@@ -1,8 +1,14 @@
+// `key` names the source, not the occurrence: a repeat replaces, not stacks.
+export interface Toast {
+  key: string
+  message: string
+}
+
 // Everything the UI watches while a load runs, plus the timing counters
 // logTimings() reports once a load completes.
 export class Status {
   public loading: boolean = $state(false)
-  public toast: string = $state('')
+  public toasts: Toast[] = $state([])
 
   public progress: number = $derived.by(() => {
     if (this.totalRepos === 0) return 0
@@ -15,12 +21,32 @@ export class Status {
   private requestTime = 0
   private processingTime = 0
 
-  // Leaves loading and toast alone — each entry point sequences those itself.
+  // Leaves loading and the toasts alone — each entry point sequences those.
   public clear(): void {
     this.totalRepos = 0
     this.reposProcessed = 0
     this.requestTime = 0
     this.processingTime = 0
+  }
+
+  // Replaces whatever that key last had to say.
+  public notify(key: string, message: string): void {
+    const index = this.toasts.findIndex((toast): boolean => toast.key === key)
+
+    if (index === -1) {
+      this.toasts.push({ key, message })
+    } else {
+      this.toasts[index] = { key, message }
+    }
+  }
+
+  public dismiss(key: string): void {
+    this.toasts = this.toasts.filter((toast): boolean => toast.key !== key)
+  }
+
+  // Teardown only — a success elsewhere must not swallow an unrelated error.
+  public clearToasts(): void {
+    this.toasts = []
   }
 
   // Every manifest page repeats the count; the first one wins.

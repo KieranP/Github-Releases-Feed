@@ -2,15 +2,16 @@
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
-  import { loader } from '../loader.svelte'
   import { applyColorScheme, persist, settings } from '../state.svelte'
 
   interface Props {
+    onclearcache: () => void
     ondebug: () => void
     onlogout: () => void
+    onreload: () => void
   }
 
-  let { ondebug, onlogout }: Props = $props()
+  let { onclearcache, ondebug, onlogout, onreload }: Props = $props()
 
   let popoverElement: HTMLDivElement | undefined = $state()
 
@@ -163,7 +164,7 @@
           (v: boolean): void => {
             saveBooleanSetting('disableCache', v)
             // The flag picks the pipeline per request, so reload to apply it.
-            loader.start()
+            onreload()
           }
         }
       />
@@ -181,7 +182,7 @@
 
     <button
       onclick={(): void => {
-        void loader.clearCachedData()
+        onclearcache()
       }}
       type="button">Clear Cache</button
     >

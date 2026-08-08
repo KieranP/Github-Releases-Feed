@@ -9,7 +9,7 @@ import {
   reposFullQuery,
   reposManifestQuery,
 } from './github'
-import { chunk } from './helpers'
+import { chunk, formatRelativeTime } from './helpers'
 import { isReleaseInWindow } from './release_window'
 import { REQUEST_RETRY_POLICY, type RetryRunner } from './retry'
 import { settings } from './state.svelte'
@@ -22,7 +22,12 @@ import type { Status } from './status.svelte'
 const REFRESH_BATCH_SIZE = 20
 
 // Raised from two places: a spent manifest page and a spent refresh batch.
-const RATE_LIMIT_TOAST = 'ERROR: Reached Github Rate Limit'
+const RATE_LIMIT_TOAST_KEY = 'rate-limit'
+
+function rateLimitToast(resetAt: string): string {
+  const lifts = formatRelativeTime(new Date(resetAt), new Date())
+  return `ERROR: Reached Github Rate Limit - resets ${lifts}`
+}
 
 // Only reposFullQuery nodes carry `releases` — those need no refresh.
 function isFullRepo(
@@ -113,7 +118,12 @@ export class RepoSync {
     const response = await this.requestStarredReposPage(sessionId, cursor)
     if (!response) return
 
-    await this.processStarredReposPage(sessionId, response)
+    // Entered with `void`, so an escaping throw is an unhandled rejection.
+    try {
+      await this.processStarredReposPage(sessionId, response)
+    } catch (error) {
+      this.abortLoad(sessionId, error)
+    }
   }
 
   // Undefined once the attempts are spent, or the session was superseded.
@@ -170,7 +180,8 @@ export class RepoSync {
 
     this.status.countRepos(totalCount)
 
-    this.status.toast = ''
+    // A page landed: retract this policy's warning, and nothing else.
+    this.status.dismiss(REQUEST_RETRY_POLICY.key)
 
     const shouldContinue =
       pageInfo.hasNextPage && response.rateLimit.remaining > 0
@@ -213,7 +224,10 @@ export class RepoSync {
 
     if (pageInfo.hasNextPage && response.rateLimit.remaining <= 0) {
       // Incomplete: drain batches, but skip pruning + the caught-up marker.
-      this.status.toast = RATE_LIMIT_TOAST
+      this.status.notify(
+        RATE_LIMIT_TOAST_KEY,
+        rateLimitToast(response.rateLimit.resetAt),
+      )
       await this.refreshChain
       if (this.session.isStale(sessionId)) return
       this.status.loading = false
@@ -256,12 +270,7 @@ export class RepoSync {
 
       return await this.refreshRepos(sessionId, repoIds)
     } catch (error) {
-      console.error(error)
-      // finishLoad bails on abort, so stop the spinner here.
-      if (!this.session.isStale(sessionId)) {
-        this.status.toast = `ERROR: ${REQUEST_RETRY_POLICY.exhausted}`
-        this.status.loading = false
-      }
+      this.abortLoad(sessionId, error)
       return true
     }
   }
@@ -293,7 +302,7 @@ export class RepoSync {
         // Missing response — retry.
         if (!response) return undefined
 
-        this.status.toast = ''
+        this.status.dismiss(REQUEST_RETRY_POLICY.key)
 
         // Unresolvable ids come back null; trim the rest to the window.
         const resolvedById = new Map<string, GithubRepository>()
@@ -324,7 +333,10 @@ export class RepoSync {
 
         // Out of points: stop rather than burn every batch left on failures.
         if (response.rateLimit.remaining <= 0) {
-          this.status.toast = RATE_LIMIT_TOAST
+          this.status.notify(
+            RATE_LIMIT_TOAST_KEY,
+            rateLimitToast(response.rateLimit.resetAt),
+          )
           this.status.loading = false
           return true
         }
@@ -371,5 +383,19 @@ export class RepoSync {
         await idbDelete('repos', id)
       }),
     )
+  }
+
+  // Last by DFS. The only report for a throw escaping a fire-and-forget chain.
+  private abortLoad(sessionId: number, error: unknown): void {
+    console.error(error)
+
+    if (this.session.isStale(sessionId)) return
+
+    this.status.notify(
+      REQUEST_RETRY_POLICY.key,
+      `ERROR: ${REQUEST_RETRY_POLICY.exhausted}`,
+    )
+    // finishLoad bails on abort, so stop the spinner here.
+    this.status.loading = false
   }
 }
