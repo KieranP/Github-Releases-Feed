@@ -6,13 +6,28 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0"
     />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        base-uri 'none';
+        object-src 'none';
+        form-action 'none';
+        script-src 'self';
+        style-src 'self';
+        style-src-attr 'unsafe-inline';
+        img-src 'self' data: https:;
+        media-src https:;
+        connect-src 'self' https://api.github.com
+      "
+    />
     <link
       rel="icon"
       type="image/png"
       href="./favicon.png"
     />
     <title>Github Releases Feed</title>
-    <script type="module" crossorigin src="./assets/index-TKIj2f1j.js"></script>
+    <script type="module" crossorigin src="./assets/index-C3wXF1lU.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-DdvpL6WX.css">
   </head>
   <body>

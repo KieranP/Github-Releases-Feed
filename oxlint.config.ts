@@ -38,6 +38,7 @@ const config: OxlintConfig = defineConfig({
     'eslint/no-ternary': 'off',
     'eslint/no-undefined': 'off',
     'eslint/no-void': 'off',
+    'eslint/one-var': 'off',
     'eslint/sort-imports': 'off',
     'eslint/sort-keys': 'off',
 
