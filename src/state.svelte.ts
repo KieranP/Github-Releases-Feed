@@ -17,7 +17,9 @@ function fetchAsSet(key: string): SvelteSet<string> {
 export function fetchAsDate(key: string): Date | null {
   const value = localStorage.getItem(key)
   if (value === null) return null
-  return new Date(value)
+
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
 }
 
 function fetchAsBool(key: string): boolean {
