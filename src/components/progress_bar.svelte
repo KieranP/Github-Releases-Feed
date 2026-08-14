@@ -42,11 +42,41 @@
     width: fit-content;
     height: fit-content;
 
+    /* The spinner animation lives here, not in the SVG: style-src blocks it. */
     :global {
       svg {
         width: 120px;
         fill: var(--svg-fill-color);
+
+        .dot {
+          animation: dot-bounce 1.05s infinite;
+        }
+
+        .delay-1 {
+          animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+          animation-delay: 0.2s;
+        }
       }
+    }
+  }
+
+  @keyframes dot-bounce {
+    0%,
+    57.14% {
+      animation-timing-function: cubic-bezier(0.33, 0.66, 0.66, 1);
+      transform: translate(0);
+    }
+
+    28.57% {
+      animation-timing-function: cubic-bezier(0.33, 0, 0.66, 0.33);
+      transform: translateY(-6px);
+    }
+
+    100% {
+      transform: translate(0);
     }
   }
 
