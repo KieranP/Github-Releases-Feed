@@ -6,7 +6,7 @@ Hosted at https://kieranp.github.io/Github-Releases-Feed/, or run it locally wit
 
 ## Features
 
-- **Personalized feed** — releases from the last month across your starred repos, via the GitHub GraphQL API.
+- **Personalized feed** — releases from the last four weeks across your starred repos, via the GitHub GraphQL API.
 - **Incremental sync** — repos are cached locally and only refetched when they've actually changed, so later loads are much cheaper than the first.
 - **Grouping** — multiple releases from one repo are collapsed together, with a "You're All Caught Up" divider marking where you left off.
 - **Filtering** — hide pre-releases, hide releases you've seen, or ignore specific repos (or just their pre-releases) without unstarring them.
