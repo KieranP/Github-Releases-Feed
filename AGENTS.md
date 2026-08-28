@@ -19,7 +19,10 @@ Personalized feed of GitHub releases for starred repos.
   `cache_eviction.ts`, `release_window.ts`.
 - `src/github.ts` — queries + types + `graphqlAllowingPartials`.
 - `src/db.ts` — IDB (`github-releases`, v4): `repos` + `descriptions`.
-- `src/state.svelte.ts` — settings (localStorage) + color scheme.
+- `src/state.svelte.ts` — settings (localStorage) + color scheme + snap lock.
+- `src/navigation.svelte.ts` — the arrow-key cursor over `groups`, held as a
+  group key. Owns the keydown guards, the on-screen scan that decides where a
+  press enters, and the scroll; `releases.svelte` only wires it.
 - `src/helpers.ts`, `src/models/`, `src/components/`, `src/styles/`,
   `src/types.d.ts`.
 - `tests/` — vitest specs + `setup.ts`; the only place that imports `../src`.
@@ -78,6 +81,15 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   Never to in-memory `settings`, or the caught-up divider jumps mid-session.
 - **`wipeCache` clears IDB twice**, either side of draining
   `RepoSync.pendingRefresh`, whose queued puts outlive the first clear.
+- **A cursor scrolled out of the viewport counts as no cursor.**
+  `Navigation.cursorIndex` returns -1 for it, so the press re-enters beside what
+  the reader is looking at. It needs a measurable element to decide that: with
+  no rendered list the key stands, or every keyboard-only test re-enters at the
+  top forever.
+- **`Navigation` scrolls from `select()`, never from an attachment.** An
+  attachment on the group re-runs every time `groups` re-derives, so each batch
+  landing mid-load dragged the page back to the cursor. `select()` fires exactly
+  once per key press.
 - **`Loader.clearState()` resets all three** of `Status`, `FeedStore`, `RepoSync`.
 - **`settings.disableCache` bypasses the `repos` store entirely** — the full
   query makes every node an `isFullRepo`, so no hydration, batches, or writes —
@@ -105,6 +117,11 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   no toast, no log, spinner up forever. Both funnel into `RepoSync.abortLoad`.
 
 ## Gotchas
+
+- **`settings.disableSnapLock` overrides CSS with an inline style** on
+  `documentElement`, the same trick as `applyColorScheme`. The `html` rule in
+  `global.css` must stay free of `!important` or the opt-out stops working.
+  Both appliers run at module load, before the first paint.
 
 - **Dual linter**: oxlint-only rules need `// oxlint-disable-next-line <rule>`;
   a bare `// eslint-disable-next-line` errors as unused.
@@ -136,8 +153,10 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 ## Testing
 
 `pnpm test` runs `vitest` over `tests/`: `helpers.test.ts`, `loader.test.ts`
-(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test), and
-`retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown).
+(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test),
+`retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown),
+and `navigation.test.ts` (entry, stepping, clamping, unrenderable groups, the
+`handleKey` guards, and the scroll).
 `RepoSync`, `DescriptionSync`, and `CacheEviction` have none — they and the
 components are verified manually with a real PAT via `pnpm dev` (Settings →
 Debug dumps state to the console).

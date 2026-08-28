@@ -20,7 +20,14 @@
   --release-description-background-color: light-dark(#f6f8fa, #090705);
   --release-description-code-background-color: #818b981f;
   --release-description-pre-background-color: #818b981f;
+  --selection-color: light-dark(#0969da, #58a6ff);
   --svg-fill-color: var(--body-font-color);
+}
+
+/* The page is the scroll container; release groups are the snap targets.
+   settings.disableSnapLock overrides this inline, so keep it !important-free. */
+html {
+  scroll-snap-type: y mandatory;
 }
 
 body,

@@ -50,6 +50,10 @@
 
         .dot {
           animation: dot-bounce 1.05s infinite;
+
+          @media (prefers-reduced-motion: reduce) {
+            animation-name: dot-fade;
+          }
         }
 
         .delay-1 {
@@ -60,6 +64,23 @@
           animation-delay: 0.2s;
         }
       }
+    }
+  }
+
+  /* Reduced motion: the dots fade rather than stop, so they still read as
+     working. Duration and the .delay-* stagger carry over. */
+  @keyframes dot-fade {
+    0%,
+    57.14% {
+      opacity: 1;
+    }
+
+    28.57% {
+      opacity: 0.25;
+    }
+
+    100% {
+      opacity: 1;
     }
   }
 

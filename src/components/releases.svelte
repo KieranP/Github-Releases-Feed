@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Navigation } from '../navigation.svelte'
   import Release from './release.svelte'
 
   import type { Release as ReleaseModel } from '../models/release.svelte'
@@ -10,9 +11,20 @@
   }
 
   const { onshowdescription, releaseGroups }: Props = $props()
+
+  const navigation = new Navigation((): ReleaseGroup[] => releaseGroups)
 </script>
 
-<main id="releases">
+<svelte:window
+  onkeydown={(event: KeyboardEvent): void => {
+    navigation.handleKey(event)
+  }}
+/>
+
+<main
+  bind:this={navigation.listElement}
+  id="releases"
+>
   {#each releaseGroups as group (group.key)}
     {#if group.showCaughtUp}
       <div id="caught_up">You're All Caught Up</div>
@@ -25,7 +37,11 @@
       )}
       {const hiddenCount = $derived(group.releases.length - 1)}
 
-      <div class="release_group">
+      <div
+        class="release_group"
+        class:selected={navigation.isSelected(group)}
+        data-group-key={group.key}
+      >
         {#each visibleReleases as release (release.data.id)}
           <Release
             {onshowdescription}
@@ -74,6 +90,8 @@
       display: flex;
       flex-direction: row;
       font-size: 13px;
+      scroll-snap-align: start;
+      scroll-margin-block: 20px;
 
       &:before,
       &:after {
@@ -101,6 +119,14 @@
       box-shadow: var(--box-shadow);
       line-height: 20px;
       font-size: 15px;
+      /* The snap target. scroll-margin keeps it off the viewport edge. */
+      scroll-snap-align: start;
+      scroll-margin-block: 20px;
+
+      &.selected {
+        outline: 2px solid var(--selection-color);
+        outline-offset: 2px;
+      }
 
       .show_more {
         padding: 10px 20px;

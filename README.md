@@ -10,8 +10,11 @@ Hosted at https://kieranp.github.io/Github-Releases-Feed/, or run it locally wit
 - **Incremental sync** — repos are cached locally and only refetched when they've actually changed, so later loads are much cheaper than the first.
 - **Grouping** — multiple releases from one repo are collapsed together, with a "You're All Caught Up" divider marking where you left off.
 - **Filtering** — hide pre-releases, hide releases you've seen, or ignore specific repos (or just their pre-releases) without unstarring them.
+- **Keyboard navigation** — up and down arrows move a cursor between release groups, scrolling each to the top. Scroll away with the mouse and the next press picks up from what's on screen.
+- **Scroll snapping** — scrolling settles with the nearest release group aligned to the top, or off via a setting.
 - **Release notes** — rendered inline, collapsed by default, expandable per release or globally.
 - **Dark mode** — follows system preference, with a manual toggle.
+- **Reduced motion** — follows system preference: scrolling and snapping settle instantly, and the loading spinner fades instead of bouncing.
 
 ## Authentication
 
@@ -26,6 +29,7 @@ Settings popover controls:
 
 - **Clear Cache** — wipe the local caches and reload from GitHub.
 - **Logout** — the same, plus removing the token.
+- **Disable Snap Lock** — stop the page settling with a release group aligned to the top. Scrolling becomes free-form; the arrow keys still work.
 - **Disable Repo Cache** — skip the incremental sync and refetch every starred repo in full on each load. Slower and far heavier on your rate limit, but useful if you suspect the cache is stale. Descriptions stay cached either way.
 
 ## Development

@@ -2,7 +2,12 @@
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
-  import { applyColorScheme, persist, settings } from '../state.svelte'
+  import {
+    applyColorScheme,
+    applySnapLock,
+    persist,
+    settings,
+  } from '../state.svelte'
 
   interface Props {
     onclearcache: () => void
@@ -19,6 +24,11 @@
     const darkMode = !settings.darkMode
     applyColorScheme(darkMode)
     saveBooleanSetting('darkMode', darkMode)
+  }
+
+  function toggleSnapLock(disabled: boolean): void {
+    applySnapLock(disabled)
+    saveBooleanSetting('disableSnapLock', disabled)
   }
 
   function saveBooleanSetting(
@@ -152,6 +162,21 @@
         }
       />
       Show Languages
+    </label>
+  </div>
+
+  <div>
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={
+          (): boolean => settings.disableSnapLock,
+          (v: boolean): void => {
+            toggleSnapLock(v)
+          }
+        }
+      />
+      Disable Snap Lock
     </label>
   </div>
 
