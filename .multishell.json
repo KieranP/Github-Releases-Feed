@@ -1,0 +1,4 @@
+{
+  "copiedPaths" : "node_modules",
+  "postCreateHook" : "pnpm install"
+}
