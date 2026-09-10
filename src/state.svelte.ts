@@ -43,20 +43,9 @@ export function applyColorScheme(dark: boolean): void {
 
 applyColorScheme(darkMode)
 
-const disableSnapLock = fetchAsBool('disableSnapLock')
-
-// Overrides the scroll-snap rule in global.css; an inline style beats the
-// stylesheet. Applied at load, or the first scroll of a session still snaps.
-export function applySnapLock(disabled: boolean): void {
-  document.documentElement.style.scrollSnapType = disabled ? 'none' : ''
-}
-
-applySnapLock(disableSnapLock)
-
 export const settings: {
   darkMode: boolean
   disableCache: boolean
-  disableSnapLock: boolean
   expandDescriptions: boolean
   githubToken: string | null
   hidePrereleases: boolean
@@ -70,7 +59,6 @@ export const settings: {
 } = $state({
   darkMode,
   disableCache: fetchAsBool('disableCache'),
-  disableSnapLock,
   expandDescriptions: fetchAsBool('expandDescriptions'),
   githubToken: localStorage.getItem('githubToken'),
   hidePrereleases: fetchAsBool('hidePrereleases'),

@@ -4,7 +4,6 @@
   import themeSvg from '../assets/theme.svg?raw'
   import {
     applyColorScheme,
-    applySnapLock,
     persist,
     settings,
   } from '../state.svelte'
@@ -24,11 +23,6 @@
     const darkMode = !settings.darkMode
     applyColorScheme(darkMode)
     saveBooleanSetting('darkMode', darkMode)
-  }
-
-  function toggleSnapLock(disabled: boolean): void {
-    applySnapLock(disabled)
-    saveBooleanSetting('disableSnapLock', disabled)
   }
 
   function saveBooleanSetting(
@@ -162,21 +156,6 @@
         }
       />
       Show Languages
-    </label>
-  </div>
-
-  <div>
-    <label>
-      <input
-        type="checkbox"
-        bind:checked={
-          (): boolean => settings.disableSnapLock,
-          (v: boolean): void => {
-            toggleSnapLock(v)
-          }
-        }
-      />
-      Disable Snap Lock
     </label>
   </div>
 

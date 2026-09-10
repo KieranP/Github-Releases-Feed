@@ -24,12 +24,6 @@
   --svg-fill-color: var(--body-font-color);
 }
 
-/* The page is the scroll container; release groups are the snap targets.
-   settings.disableSnapLock overrides this inline, so keep it !important-free. */
-html {
-  scroll-snap-type: y mandatory;
-}
-
 body,
 [popover] {
   background-color: var(--body-background-color);

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { applySnapLock, fetchAsDate } from '../src/state.svelte'
+import { fetchAsDate } from '../src/state.svelte'
 
 const KEY = 'lastAccessedAt'
 
@@ -30,20 +30,4 @@ describe('fetchAsDate', () => {
       expect(fetchAsDate(KEY)).toBeNull()
     },
   )
-})
-
-describe('applySnapLock', () => {
-  // An empty value drops back to global.css; a literal would defeat it.
-  it('clears the inline override when snapping is on', () => {
-    applySnapLock(true)
-    applySnapLock(false)
-
-    expect(document.documentElement.style.scrollSnapType).toBe('')
-  })
-
-  it('writes an inline none when snapping is off', () => {
-    applySnapLock(true)
-
-    expect(document.documentElement.style.scrollSnapType).toBe('none')
-  })
 })

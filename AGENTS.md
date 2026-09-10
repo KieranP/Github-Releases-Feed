@@ -19,7 +19,7 @@ Personalized feed of GitHub releases for starred repos.
   `cache_eviction.ts`, `release_window.ts`.
 - `src/github.ts` — queries + types + `graphqlAllowingPartials`.
 - `src/db.ts` — IDB (`github-releases`, v4): `repos` + `descriptions`.
-- `src/state.svelte.ts` — settings (localStorage) + color scheme + snap lock.
+- `src/state.svelte.ts` — settings (localStorage) + color scheme.
 - `src/navigation.svelte.ts` — the arrow-key cursor over `groups`, held as a
   group key. Owns the keydown guards, the on-screen scan that decides where a
   press enters, and the scroll; `releases.svelte` only wires it.
@@ -117,11 +117,6 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   no toast, no log, spinner up forever. Both funnel into `RepoSync.abortLoad`.
 
 ## Gotchas
-
-- **`settings.disableSnapLock` overrides CSS with an inline style** on
-  `documentElement`, the same trick as `applyColorScheme`. The `html` rule in
-  `global.css` must stay free of `!important` or the opt-out stops working.
-  Both appliers run at module load, before the first paint.
 
 - **Dual linter**: oxlint-only rules need `// oxlint-disable-next-line <rule>`;
   a bare `// eslint-disable-next-line` errors as unused.

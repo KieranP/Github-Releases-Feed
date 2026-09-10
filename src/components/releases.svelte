@@ -90,8 +90,6 @@
       display: flex;
       flex-direction: row;
       font-size: 13px;
-      scroll-snap-align: start;
-      scroll-margin-block: 20px;
 
       &:before,
       &:after {
@@ -119,8 +117,7 @@
       box-shadow: var(--box-shadow);
       line-height: 20px;
       font-size: 15px;
-      /* The snap target. scroll-margin keeps it off the viewport edge. */
-      scroll-snap-align: start;
+      /* The arrow-key scroll target; keeps it off the viewport edge. */
       scroll-margin-block: 20px;
 
       &.selected {

@@ -15,7 +15,7 @@ html {
   text-size-adjust: none;
   scroll-behavior: smooth;
 
-  /* The arrow-key scroll and the snap settle both animate through this. */
+  /* The arrow-key scroll animates through this. */
   @media (prefers-reduced-motion: reduce) {
     scroll-behavior: auto;
   }
