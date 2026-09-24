@@ -114,8 +114,25 @@ export class DescriptionSync {
     )
   }
 
-  // Retries rather than leaving the cards permanently blank.
+  // Retries, then blanks whatever is still missing: an unresolvable id or spent
+  // retries would otherwise leave the card's spinner up for good.
   private async fetchBatch(
+    sessionId: number,
+    releaseIds: string[],
+  ): Promise<void> {
+    await this.requestBatch(sessionId, releaseIds)
+
+    // A superseded session's feed may already hold the same ids again.
+    if (this.session.isStale(sessionId)) return
+
+    for (const releaseId of releaseIds) {
+      if (this.feed.find(releaseId)?.data.descriptionHTML === undefined) {
+        this.feed.attachDescription(releaseId, '')
+      }
+    }
+  }
+
+  private async requestBatch(
     sessionId: number,
     releaseIds: string[],
   ): Promise<void> {

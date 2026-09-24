@@ -17,15 +17,15 @@ exposes the four values the UI reads, and owns the three entry points. Each
 stage holds one job and only the dependencies it uses, and each lives in its own
 flat module beside `loader.svelte.ts`.
 
-| Unit              | Owns                                           | Depends on                            |
-| ----------------- | ---------------------------------------------- | ------------------------------------- |
-| `Session`         | octokit client, session id + abort, `isStale`  | `settings`                            |
-| `Status`          | `loading`, `toast`, progress counters, timings | —                                     |
-| `FeedStore`       | `releases` + indexes, `groups` derived         | `settings`                            |
-| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown       | `Session`, `Status`                   |
-| `RepoSync`        | manifest pagination, serial refresh chain      | all of the above, `DescriptionSync`   |
-| `DescriptionSync` | release notes, prefetched or on demand         | `Session`, `FeedStore`, `RetryRunner` |
-| `CacheEviction`   | the two once-a-day IDB sweeps                  | `Session`, `FeedStore`                |
+| Unit              | Owns                                            | Depends on                            |
+| ----------------- | ----------------------------------------------- | ------------------------------------- |
+| `Session`         | octokit client, session id + abort, `isStale`   | `settings`                            |
+| `Status`          | `loading`, `toasts`, progress counters, timings | —                                     |
+| `FeedStore`       | `releases` + indexes, `groups` derived          | `settings`                            |
+| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown        | `Session`, `Status`                   |
+| `RepoSync`        | manifest pagination, serial refresh chain       | all of the above, `DescriptionSync`   |
+| `DescriptionSync` | release notes, prefetched or on demand          | `Session`, `FeedStore`, `RetryRunner` |
+| `CacheEviction`   | the two once-a-day IDB sweeps                   | `Session`, `FeedStore`                |
 
 Two edges are inverted so nothing points back at `Loader` except by callback:
 `RetryRunner` gets an `onAuthFailure` hook (a 401 means the whole session goes),
@@ -70,7 +70,7 @@ flowchart TD
   fetchPage["fetchStarredReposPage cursor"]:::fn --> requestPage["requestStarredReposPage"]:::fn
   requestPage --> gqlManifest{{"reposManifestQuery, or reposFullQuery when cache disabled"}}:::ext
   gqlManifest -->|401| handleAuthError
-  gqlManifest -->|error| nextRetry["RetryRunner.run + retryDelay"]:::err
+  gqlManifest -->|error| nextRetry["RetryRunner.run, backoff or GitHub's wait"]:::err
   nextRetry -->|retries less than 3| fetchPage
   nextRetry -->|exhausted| AbortEnd
   gqlManifest -->|response| processPage["processStarredReposPage"]:::fn
@@ -90,10 +90,11 @@ flowchart TD
   refreshRepos --> gqlBatch{{"reposByIdsQuery"}}:::ext
   gqlBatch -->|401| handleAuthError
   gqlBatch -->|error| refreshRepos
-  gqlBatch -->|response| trimResolved["filter nulls, trim to 1-month window"]
+  gqlBatch -->|response| trimResolved["filter nulls, trim to 4-week window"]
   trimResolved --> idbBatchWrite[("put resolved, delete unresolved")]:::io
   idbBatchWrite --> dropForRepos["feed.dropForRepos"]:::fn
   dropForRepos --> processRefresh["mergeIntoFeed refresh"]:::fn
+  processRefresh -->|rate limit spent| RateLimitEnd
 
   processHydrate --> extract
   processRefresh --> extract
@@ -112,6 +113,7 @@ flowchart TD
   fetchBatch --> gqlDesc{{"descriptionQuery"}}:::ext
   gqlDesc --> cacheDesc[("db.put descriptions")]:::io
   cacheDesc --> attachDesc
+  fetchBatch -->|retries spent or id gone, blank| attachDesc
   attachDesc --> releasesState
 
   finishLoad["RepoSync.finishLoad"]:::fn --> staleIdb["deleteUnstarredRepos"]:::fn
@@ -141,14 +143,16 @@ flowchart TD
   classDef io fill:#7c2d12,stroke:#ea580c,color:#fff
   classDef ext fill:#581c87,stroke:#a855f7,color:#fff
 
-  Logout([Logout or 401]):::ext --> resetFn["reset — clears token and localStorage"]:::fn
+  Logout([Logout or 401]):::ext --> resetFn["reset, forgets the token, lastAccessedAt, lastEvictedAt"]:::fn
   ClearBtn([Settings, Clear Cache]):::ext --> clearFn["clearCachedData"]:::fn
   resetFn --> bump["Session.begin, Loader.clearState"]:::fn
   clearFn --> bump
   bump --> wipeCache["wipeCache"]:::fn
   wipeCache --> clear1[("clearCache")]:::io
   clear1 --> awaitChain["await repos.pendingRefresh"]:::fn
-  awaitChain --> clear2[("clearCache again — queued puts outlive the first wipe")]:::io
+  awaitChain --> superseded{"superseded since?"}
+  superseded -->|yes| Stop([Stop, a newer session owns IDB]):::ext
+  superseded -->|no| clear2[("clearCache again — queued puts outlive the first wipe")]:::io
   clear2 --> restart{"came from clearCachedData?"}
   restart -->|yes| startAgain["Loader.start"]:::fn
   restart -->|no| Idle([Login screen]):::ext
@@ -174,9 +178,10 @@ state · purple = external · red = error.
   `descriptionKey`) so edited release notes auto-refresh. Writes key on
   the release's own `updatedAt`, not the one `descriptionQuery` returns —
   reads and eviction both key on the cached value.
-- **Cached `releases.nodes` trimmed to a sliding 1-month window** on every
-  refresh write and again during `CacheEviction.run`. `isReleaseInWindow`
-  (`src/release_window.ts`) is the single definition of that edge.
+- **Cached `releases.nodes` trimmed to a four-week window** on every refresh
+  write and again during `CacheEviction.run`. `isReleaseInWindow`
+  (`src/release_window.ts`) is the single definition of that edge, fixed when
+  the module loads so every stage trims to the same date.
 - **`releasesByRepo`** maps repo id → release ids so `FeedStore.dropForRepos`
   is O(batch) rather than O(feed) before each re-merge.
 - **`Status.advance` is called with the full batch size** on refresh (not the
@@ -197,4 +202,5 @@ state · purple = external · red = error.
   store; orphaned keys may linger that long but won't grow unbounded.
 - **Description failures don't tear down the load.** `DESCRIPTION_RETRY_POLICY`
   has `fatal: false`, so `RetryRunner` toasts on exhaustion without clearing
-  `loading`, unlike `REQUEST_RETRY_POLICY`.
+  `loading`, unlike `MANIFEST_RETRY_POLICY` and `REFRESH_RETRY_POLICY`. The
+  failed batch's cards are set to `''`, which hides their spinner.

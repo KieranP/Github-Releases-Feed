@@ -3,34 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { FeedStore } from '../src/feed.svelte'
 import { Session } from '../src/session.svelte'
 import { Status } from '../src/status.svelte'
-
-import type { GithubRepository } from '../src/github'
-
-function repoFixture(id: string, publishedAt: Date): GithubRepository {
-  return {
-    id,
-    description: 'desc',
-    languages: { nodes: [] },
-    name: id,
-    owner: { avatarUrl: '', login: 'owner', url: '' },
-    releases: {
-      nodes: [
-        {
-          id: `${id}-rel`,
-          isPrerelease: false,
-          name: 'v1',
-          publishedAt: publishedAt.toISOString(),
-          tagName: 'v1',
-          updatedAt: publishedAt.toISOString(),
-          url: '',
-        },
-      ],
-    },
-    stargazerCount: 1,
-    updatedAt: publishedAt.toISOString(),
-    url: '',
-  }
-}
+import { repoFixture } from './fixtures'
 
 // Proves tests/setup.ts gave db.ts a working IndexedDB rather than just
 // silencing its open failure — the cache paths are unreachable without it.

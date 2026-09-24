@@ -10,7 +10,7 @@ Personalized feed of GitHub releases for starred repos.
 - `src/App.svelte` — entry: starts the loader on mount, and the only place that
   touches the `loader` singleton — every component below takes callback props.
 - `src/loader.svelte.ts` — façade over the pipeline: `start`/`reset`/
-  `clearCachedData`/`dismissToast`/`clearToasts` + the
+  `clearCachedData`/`loadDescription`/`dismissToast`/`clearToasts` + the
   `loading`/`progress`/`groups`/`toasts` getters.
 - Pipeline, flat siblings so none imports back out of a folder (see
   `IMPLEMENTATION.md`): `session.svelte.ts` (octokit + staleness),
@@ -25,7 +25,8 @@ Personalized feed of GitHub releases for starred repos.
   press enters, and the scroll; `releases.svelte` only wires it.
 - `src/helpers.ts`, `src/models/`, `src/components/`, `src/styles/`,
   `src/types.d.ts`.
-- `tests/` — vitest specs + `setup.ts`; the only place that imports `../src`.
+- `tests/` — vitest specs + `setup.ts` + `fixtures.ts` (shared repo fixture and
+  session stub); the only place that imports `../src`.
 - `dist/` — **committed**; the Pages workflow uploads it as-is (see Deploy).
 
 ## Coding standards (strict)
@@ -45,7 +46,8 @@ Personalized feed of GitHub releases for starred repos.
 `pnpm types` · `pnpm lint` · `pnpm format` · `pnpm test` · `pnpm build` · `pnpm dev --open`
 
 `types` and `lint` each run two tools chained with `;`, so a failure in the
-first doesn't stop the second.
+first doesn't stop the second. `pnpm-workspace.yaml` sets `shellEmulator: true`,
+so the `**` globs in scripts expand recursively; `sh -c` can't reproduce them.
 
 ## Deploy
 
@@ -64,7 +66,12 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   IntersectionObserver callback delivers a screenful and a request per card
   trips the rate limit. `Release.descriptionRequested`, claimed before the first
   `await` in `fetchAll`, stops both paths fetching the first screenful.
-- **Re-check `isStale(sessionId)` after every `await`** (24 sites) against the id
+- **A failed or partial description batch blanks its cards.** Once retries are
+  spent, or a node comes back null, `fetchBatch` sets `''` on every release still
+  unset, else the spinner never clears and `descriptionRequested` blocks a
+  retry. It re-checks `isStale` first: a newer session's feed can hold the same
+  ids.
+- **Re-check `isStale(sessionId)` after every `await`** (25 sites) against the id
   the method was handed. `start`/`reset`/`clearCachedData` bump it via
   `Session.begin()`; `!octokit` alone can't tell a superseded chain from a live
   one after a new token is pasted in. Teardown (`wipeCache`, `clearCachedData`)
@@ -150,15 +157,23 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 `pnpm test` runs `vitest` over `tests/`: `helpers.test.ts`, `loader.test.ts`
 (`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test),
 `retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown),
-and `navigation.test.ts` (entry, stepping, clamping, unrenderable groups, the
-`handleKey` guards, and the scroll).
-`RepoSync`, `DescriptionSync`, and `CacheEviction` have none — they and the
-components are verified manually with a real PAT via `pnpm dev` (Settings →
-Debug dumps state to the console).
+`navigation.test.ts` (entry, stepping, clamping, unrenderable groups, the
+`handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`),
+`github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts` (selective
+refresh, pruning, the serial chain, abort, rate-limit stop, a stale refresh),
+`description_sync.test.ts` (cache, claim, coalescing, blanking on failure), and
+`cache_eviction.test.ts` (the daily gate and both sweeps).
+The components are verified manually with a real PAT via `pnpm dev`
+(Settings → Debug dumps state to the console).
 
-`retry.test.ts` stubs `Session.isStale` rather than setting a token: the token is
-a module singleton, so a test that sets it would leak into every other spec in
-the file. It drives `delay` with `vi.useFakeTimers()`.
+Specs stub `Session.isStale` rather than setting a token, and the pipeline
+specs stub the `octokit` getter too (`liveSession` in `tests/fixtures.ts`): the
+token is a module singleton, so a test that sets it would leak into every other
+spec in the file. The `RepoSync` specs route the stub `graphql` by query string
+to a fake GitHub. Specs that touch IDB fake only `setTimeout`, so
+fake-indexeddb's `setImmediate` still runs, and must not `await` `RepoSync.run`
+before advancing the timers: a single-page load awaits the refresh chain inside
+it.
 
 `tests/setup.ts` stubs `IntersectionObserver`, `localStorage`, and `matchMedia`,
 and imports `fake-indexeddb/auto` — jsdom has no IndexedDB, so without it

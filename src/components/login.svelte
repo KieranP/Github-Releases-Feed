@@ -6,10 +6,19 @@
   const { onlogin }: Props = $props()
 
   let inputValue = $state('')
+
+  // fetch trims a trailing space from the header, but a leading one survives.
+  const token = $derived(inputValue.trim())
+
+  // Never navigates, so the CSP's form-action 'none' doesn't apply.
+  function onsubmit(event: SubmitEvent): void {
+    event.preventDefault()
+    onlogin(token)
+  }
 </script>
 
 <div id="login">
-  <div>
+  <form {onsubmit}>
     <input
       aria-label="GitHub personal access token"
       placeholder="github_pat_..."
@@ -18,13 +27,10 @@
     />
 
     <button
-      disabled={!inputValue}
-      onclick={(): void => {
-        onlogin(inputValue)
-      }}
-      type="button">Load</button
+      disabled={!token}
+      type="submit">Load</button
     >
-  </div>
+  </form>
 
   <div>
     <details name="faq">

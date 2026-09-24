@@ -2,11 +2,7 @@
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
   import themeSvg from '../assets/theme.svg?raw'
-  import {
-    applyColorScheme,
-    persist,
-    settings,
-  } from '../state.svelte'
+  import { applyColorScheme, persist, settings } from '../state.svelte'
 
   interface Props {
     onclearcache: () => void
