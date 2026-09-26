@@ -373,6 +373,7 @@ export class RepoSync {
     if (aborted || this.session.isStale(sessionId)) return
 
     this.status.loading = false
+    this.status.completed = true
 
     await this.onComplete(sessionId)
   }

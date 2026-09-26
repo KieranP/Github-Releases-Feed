@@ -11,7 +11,7 @@
     onreload: () => void
   }
 
-  let { onclearcache, ondebug, onlogout, onreload }: Props = $props()
+  const { onclearcache, ondebug, onlogout, onreload }: Props = $props()
 
   let popoverElement: HTMLDivElement | undefined = $state()
 

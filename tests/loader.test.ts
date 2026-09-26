@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { FeedStore } from '../src/feed.svelte'
 import { Session } from '../src/session.svelte'
+import { settings } from '../src/state.svelte'
 import { Status } from '../src/status.svelte'
 import { repoFixture } from './fixtures'
 
@@ -42,6 +43,13 @@ describe('Status', () => {
     status.advance(5)
     status.clear()
     expect(status.progress).toBe(0)
+  })
+
+  it('forgets a completed load when cleared', () => {
+    const status = new Status()
+    status.completed = true
+    status.clear()
+    expect(status.completed).toBe(false)
   })
 
   it('leaves the toasts alone when clearing the counters', () => {
@@ -215,6 +223,7 @@ describe('loader wiring', () => {
     expect(loader.progress).toBe(0)
     expect(loader.groups).toEqual([])
     expect(loader.toasts).toEqual([])
+    expect(loader.isEmpty).toBe(false)
 
     loader.clearToasts()
     loader.dismissToast('request')
@@ -223,5 +232,16 @@ describe('loader wiring', () => {
     // No token configured, so this must be a no-op rather than a throw.
     loader.start()
     expect(loader.loading).toBe(false)
+  })
+
+  it('dumps the ignore lists as Sets rather than empty objects', async () => {
+    const { loader } = await import('../src/loader.svelte')
+    settings.ignoredRepos.add('owner/repo')
+
+    try {
+      expect(loader.dump()).toContain('ignoredRepos:new Set(["owner/repo"])')
+    } finally {
+      settings.ignoredRepos.delete('owner/repo')
+    }
   })
 })

@@ -1,3 +1,5 @@
+import { uneval } from 'devalue'
+
 import { CacheEviction } from './cache_eviction'
 import { clearCache } from './db'
 import { DescriptionSync } from './description_sync'
@@ -5,7 +7,7 @@ import { FeedStore } from './feed.svelte'
 import { RepoSync } from './repo_sync'
 import { RetryRunner } from './retry'
 import { Session } from './session.svelte'
-import { forget, persist, settings } from './state.svelte'
+import { dumpSettings, forget, persist, settings } from './state.svelte'
 import { Status, type Toast } from './status.svelte'
 
 import type { Release } from './models/release.svelte'
@@ -68,6 +70,24 @@ class Loader {
 
   public get toasts(): Toast[] {
     return this.status.toasts
+  }
+
+  // Not while loading or after a partial load: either can still be hiding
+  // releases. Filters hiding every release still leave the caught-up group.
+  public get isEmpty(): boolean {
+    return this.status.completed && this.feed.groups.length === 0
+  }
+
+  // uneval, not JSON.stringify: that renders the ignore Sets as `{}` and drops
+  // undefined, which is how a still-loading description reads.
+  public dump(): string {
+    return uneval({
+      loading: this.loading,
+      progress: this.progress,
+      toasts: this.toasts,
+      settings: dumpSettings(),
+      groups: this.groups.map((group) => group.dump()),
+    })
   }
 
   public dismissToast(key: string): void {

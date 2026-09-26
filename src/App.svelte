@@ -15,6 +15,7 @@
   const progress = $derived(loader.progress)
   const releaseGroups = $derived(loader.groups)
   const toasts = $derived(loader.toasts)
+  const isEmpty = $derived(loader.isEmpty)
 
   function onlogin(inputValue: string): void {
     if (!inputValue) return
@@ -48,18 +49,7 @@
   }
 
   function ondebug(): void {
-    console.log(
-      JSON.stringify({
-        loading,
-        progress,
-        toasts,
-        settings: {
-          ...settings,
-          githubToken: settings.githubToken?.slice(0, 11),
-        },
-        groups: releaseGroups.map((g) => g.dump()),
-      }),
-    )
+    console.log(loader.dump())
   }
 
   onMount((): void => {
@@ -82,6 +72,7 @@
   {/if}
 
   <Releases
+    {isEmpty}
     {onshowdescription}
     {releaseGroups}
   />

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { fetchAsDate } from '../src/state.svelte'
+import { dumpSettings, fetchAsDate, settings } from '../src/state.svelte'
 
 const KEY = 'lastAccessedAt'
 
@@ -30,4 +30,16 @@ describe('fetchAsDate', () => {
       expect(fetchAsDate(KEY)).toBeNull()
     },
   )
+})
+
+describe('dumpSettings', () => {
+  afterEach((): void => {
+    settings.githubToken = null
+  })
+
+  it('keeps only the token prefix', () => {
+    settings.githubToken = 'github_pat_secretpart'
+
+    expect(dumpSettings()).toMatchObject({ githubToken: 'github_pat_' })
+  })
 })

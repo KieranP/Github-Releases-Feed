@@ -6,11 +6,12 @@
   import type { ReleaseGroup } from '../models/release_group.svelte'
 
   interface Props {
+    isEmpty: boolean
     onshowdescription: (release: ReleaseModel) => void
     releaseGroups: ReleaseGroup[]
   }
 
-  const { onshowdescription, releaseGroups }: Props = $props()
+  const { isEmpty, onshowdescription, releaseGroups }: Props = $props()
 
   const navigation = new Navigation((): ReleaseGroup[] => releaseGroups)
 </script>
@@ -25,6 +26,12 @@
   bind:this={navigation.listElement}
   id="releases"
 >
+  {#if isEmpty}
+    <p id="empty">
+      No releases from your starred repositories in the last four weeks.
+    </p>
+  {/if}
+
   {#each releaseGroups as group (group.key)}
     {#if group.showCaughtUp}
       <div id="caught_up">You're All Caught Up</div>
@@ -85,6 +92,11 @@
     width: 100%;
     max-width: 1000px;
     margin: 20px auto;
+
+    #empty {
+      margin: 0;
+      text-align: center;
+    }
 
     #caught_up {
       display: flex;

@@ -1,7 +1,7 @@
 # Github Releases Activity Feed
 
 Personalized feed of GitHub releases for starred repos.
-**Stack**: Svelte 5 Runes, TypeScript, Vite, `@octokit/core`, `idb`.
+**Stack**: Svelte 5 Runes, TypeScript, Vite, `@octokit/core`, `idb`, `devalue`.
 **Auth**: PAT in localStorage. No backend — everything runs client-side.
 `CLAUDE.md` is a symlink to this file.
 
@@ -10,8 +10,8 @@ Personalized feed of GitHub releases for starred repos.
 - `src/App.svelte` — entry: starts the loader on mount, and the only place that
   touches the `loader` singleton — every component below takes callback props.
 - `src/loader.svelte.ts` — façade over the pipeline: `start`/`reset`/
-  `clearCachedData`/`loadDescription`/`dismissToast`/`clearToasts` + the
-  `loading`/`progress`/`groups`/`toasts` getters.
+  `clearCachedData`/`loadDescription`/`dismissToast`/`clearToasts`/`dump` + the
+  `loading`/`progress`/`groups`/`toasts`/`isEmpty` getters.
 - Pipeline, flat siblings so none imports back out of a folder (see
   `IMPLEMENTATION.md`): `session.svelte.ts` (octokit + staleness),
   `status.svelte.ts`, `feed.svelte.ts` (releases + `groups`), `repo_sync.ts`
@@ -45,9 +45,11 @@ Personalized feed of GitHub releases for starred repos.
 
 `pnpm types` · `pnpm lint` · `pnpm format` · `pnpm test` · `pnpm build` · `pnpm dev --open`
 
-`types` and `lint` each run two tools chained with `;`, so a failure in the
-first doesn't stop the second. `pnpm-workspace.yaml` sets `shellEmulator: true`,
-so the `**` globs in scripts expand recursively; `sh -c` can't reproduce them.
+`types` and `lint` each run their two `types:*`/`lint:*` tools in parallel with
+`--no-bail`: both finish, and either failing fails the script. Chaining with `;`
+kept only the second tool's exit code. `pnpm-workspace.yaml` sets
+`shellEmulator: true`, so the `**` globs in scripts expand recursively; `sh -c`
+can't reproduce them.
 
 ## Deploy
 
@@ -71,7 +73,7 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   unset, else the spinner never clears and `descriptionRequested` blocks a
   retry. It re-checks `isStale` first: a newer session's feed can hold the same
   ids.
-- **Re-check `isStale(sessionId)` after every `await`** (25 sites) against the id
+- **Re-check `isStale(sessionId)` after every `await`** (26 sites) against the id
   the method was handed. `start`/`reset`/`clearCachedData` bump it via
   `Session.begin()`; `!octokit` alone can't tell a superseded chain from a live
   one after a new token is pasted in. Teardown (`wipeCache`, `clearCachedData`)
@@ -155,13 +157,15 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 ## Testing
 
 `pnpm test` runs `vitest` over `tests/`: `helpers.test.ts`, `loader.test.ts`
-(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test),
+(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test and
+the debug dump),
 `retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown),
 `navigation.test.ts` (entry, stepping, clamping, unrenderable groups, the
-`handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`),
-`github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts` (selective
-refresh, pruning, the serial chain, abort, rate-limit stop, a stale refresh),
-`description_sync.test.ts` (cache, claim, coalescing, blanking on failure), and
+`handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`,
+`dumpSettings`), `github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts`
+(selective refresh, pruning, the serial chain, abort, rate-limit stop, a stale
+refresh, the completion flag), `description_sync.test.ts` (cache, claim,
+coalescing, blanking on failure, a stale cache read), and
 `cache_eviction.test.ts` (the daily gate and both sweeps).
 The components are verified manually with a real PAT via `pnpm dev`
 (Settings → Debug dumps state to the console).

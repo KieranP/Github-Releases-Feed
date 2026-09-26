@@ -182,6 +182,7 @@ describe('RepoSync', () => {
     expect(stored?.updatedAt).toBe(fresh.updatedAt)
     expect(onComplete).toHaveBeenCalledWith(SESSION_ID)
     expect(status.progress).toBe(1)
+    expect(status.completed).toBe(true)
   })
 
   it('deletes a cached repo that is no longer starred', async () => {
@@ -266,6 +267,7 @@ describe('RepoSync', () => {
       },
     ])
     expect(onComplete).not.toHaveBeenCalled()
+    expect(status.completed).toBe(false)
   })
 
   it('stops paging without pruning once the manifest runs out of points', async () => {
@@ -289,6 +291,7 @@ describe('RepoSync', () => {
     expect(status.toasts.map((t) => t.key)).toEqual(['rate-limit'])
     expect(await idbGet('repos', 'c')).toBeDefined()
     expect(onComplete).not.toHaveBeenCalled()
+    expect(status.completed).toBe(false)
   })
 
   it('leaves the feed alone when a refresh lands after the session ends', async () => {

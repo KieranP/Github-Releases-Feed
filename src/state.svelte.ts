@@ -71,6 +71,14 @@ export const settings: {
   showLanguages: fetchAsBool('showLanguages'),
 })
 
+// Keeps only the token's prefix, so a pasted dump can't leak a usable one.
+export function dumpSettings(): object {
+  return {
+    ...settings,
+    githubToken: settings.githubToken?.slice(0, 11),
+  }
+}
+
 // One key per setting, plus the loader's eviction timestamp.
 type StorageKey = keyof typeof settings | 'lastEvictedAt'
 

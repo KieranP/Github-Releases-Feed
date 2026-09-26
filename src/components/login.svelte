@@ -37,14 +37,14 @@
       <summary>What does this service do? Why does it exist?</summary>
       <p>
         The Github activity feed that shows when you first log in is notoriously
-        broken. Sometimes is shows everything it should, sometimes it shows
+        broken. Sometimes it shows everything it should, sometimes it shows
         nothing, and most times it shows something in between. It is almost
         impossible to get a reliable list of all recent releases for starred
         repositories.
       </p>
       <p>
         This service was created to resolve that issue. You provide a Github
-        Personal Access Token which has read-only access your starred
+        Personal Access Token which has read-only access to your starred
         repositories, and it will then fetch the last four weeks of releases for
         those repositories, displaying them from newest to oldest. No fancy
         algorithms or predictions getting in the way; the way all activity feeds
@@ -61,8 +61,8 @@
         fetches your starred repositories along with their releases, and then
         loops over, processes, and displays the results in a clear and
         informative way. The Github Personal Access Token is saved in the
-        browsers local storage so that you do not need to keep providing it each
-        time you access this service.
+        browser's local storage so that you do not need to keep providing it
+        each time you access this service.
       </p>
       <p>
         Because of limitations with Github's GraphQL API, this service cannot
@@ -71,7 +71,7 @@
         timeouts). Each batch is then added to the results set, and re-sorted by
         release date. Therefore, as more results trickle in, the feed jumps
         around until all results are loaded. It is recommended to wait until the
-        loading bar reaches 100% before scrolling the feed so as not miss
+        loading bar reaches 100% before scrolling the feed so as not to miss
         anything.
       </p>
     </details>
@@ -81,9 +81,9 @@
       <p>
         We will never ask for your email and password. Instead, this service
         uses Github's Personal Access Token functionality. The token you supply
-        is stored in your browsers local storage; we never see it because it
+        is stored in your browser's local storage; we never see it because it
         never leaves your computer. Additionally, we recommend using Github's
-        fine-grained access tokens, which allow you to limit the tokens ability
+        fine-grained access tokens, which allow you to limit the token's ability
         to allow only read-only access to the repositories you have starred.
       </p>
       <p>

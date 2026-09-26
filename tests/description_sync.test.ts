@@ -136,6 +136,19 @@ describe('DescriptionSync', () => {
     expect(release.data.descriptionHTML).toBeUndefined()
   })
 
+  it('leaves releases alone when superseded during the cache read', async () => {
+    const { sync, feed, goStale } = harness()
+    const [release] = mergeReleases(feed, 'a')
+    if (!release) throw new Error('fixture merged nothing')
+    await idbPut('descriptions', '<p>cached</p>', keyOf(release))
+
+    const loading = sync.load(SESSION_ID, [release])
+    goStale()
+    await loading
+
+    expect(release.data.descriptionHTML).toBeUndefined()
+  })
+
   it('fetches a release once when the prefetch and the viewport overlap', async () => {
     const { sync, feed, graphql } = harness()
     respondWithNotes(graphql)

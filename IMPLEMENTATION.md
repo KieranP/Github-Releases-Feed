@@ -17,15 +17,15 @@ exposes the four values the UI reads, and owns the three entry points. Each
 stage holds one job and only the dependencies it uses, and each lives in its own
 flat module beside `loader.svelte.ts`.
 
-| Unit              | Owns                                            | Depends on                            |
-| ----------------- | ----------------------------------------------- | ------------------------------------- |
-| `Session`         | octokit client, session id + abort, `isStale`   | `settings`                            |
-| `Status`          | `loading`, `toasts`, progress counters, timings | —                                     |
-| `FeedStore`       | `releases` + indexes, `groups` derived          | `settings`                            |
-| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown        | `Session`, `Status`                   |
-| `RepoSync`        | manifest pagination, serial refresh chain       | all of the above, `DescriptionSync`   |
-| `DescriptionSync` | release notes, prefetched or on demand          | `Session`, `FeedStore`, `RetryRunner` |
-| `CacheEviction`   | the two once-a-day IDB sweeps                   | `Session`, `FeedStore`                |
+| Unit              | Owns                                                | Depends on                            |
+| ----------------- | --------------------------------------------------- | ------------------------------------- |
+| `Session`         | octokit client, session id + abort, `isStale`       | `settings`                            |
+| `Status`          | `loading`, `completed`, `toasts`, progress, timings | —                                     |
+| `FeedStore`       | `releases` + indexes, `groups` derived              | `settings`                            |
+| `RetryRunner`     | backoff, exhaustion toasts, 401 teardown            | `Session`, `Status`                   |
+| `RepoSync`        | manifest pagination, serial refresh chain           | all of the above, `DescriptionSync`   |
+| `DescriptionSync` | release notes, prefetched or on demand              | `Session`, `FeedStore`, `RetryRunner` |
+| `CacheEviction`   | the two once-a-day IDB sweeps                       | `Session`, `FeedStore`                |
 
 Two edges are inverted so nothing points back at `Loader` except by callback:
 `RetryRunner` gets an `onAuthFailure` hook (a 401 means the whole session goes),
@@ -120,7 +120,7 @@ flowchart TD
   staleIdb --> staleIdbIo[("db.delete unstarred")]:::io
   staleIdbIo --> drain{"refreshChain aborted?"}
   drain -->|yes| AbortEnd([Done — aborted]):::err
-  drain -->|no| markDone["loading false, then Loader.completeLoad persists lastAccessedAt"]
+  drain -->|no| markDone["loading false, completed true, then Loader.completeLoad persists lastAccessedAt"]
   markDone --> evictStaleData["CacheEviction.run"]:::fn
   evictStaleData --> cacheOff{"cache disabled?"}
   cacheOff -->|yes, every load| clearRepos[("clearRepos")]:::io

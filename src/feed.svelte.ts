@@ -96,8 +96,8 @@ export class FeedStore {
     return this.releasesIndex.get(releaseId)
   }
 
-  // Setting descriptionHTML re-renders that card. No-ops once a refresh has
-  // replaced the release this description was fetched for.
+  // Setting descriptionHTML re-renders that card. Keyed by id, so a release a
+  // refresh re-merged gets it too; no-ops only once the id leaves the feed.
   public attachDescription(releaseId: string, description: string): void {
     const release = this.releasesIndex.get(releaseId)
 

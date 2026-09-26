@@ -91,6 +91,8 @@ export class DescriptionSync {
           descriptionKey(release.data.id, release.data.updatedAt),
         )
 
+        if (this.session.isStale(sessionId)) return
+
         if (description === undefined) {
           uncachedReleaseIds.push(release.data.id)
         } else {

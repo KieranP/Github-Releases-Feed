@@ -10,6 +10,9 @@ export class Status {
   public loading: boolean = $state(false)
   public toasts: Toast[] = $state([])
 
+  // Only a full load can prove the feed is empty; a partial one just stopped.
+  public completed: boolean = $state(false)
+
   public progress: number = $derived.by(() => {
     if (this.totalRepos === 0) return 0
     // Clamp: concurrent star changes can push reposProcessed past totalRepos.
@@ -23,6 +26,7 @@ export class Status {
 
   // Leaves loading and the toasts alone — each entry point sequences those.
   public clear(): void {
+    this.completed = false
     this.totalRepos = 0
     this.reposProcessed = 0
     this.requestTime = 0
