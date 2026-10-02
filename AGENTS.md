@@ -1,9 +1,11 @@
 # Github Releases Activity Feed
 
 Personalized feed of GitHub releases for starred repos.
-**Stack**: Svelte 5 Runes, TypeScript, Vite, `@octokit/core`, `idb`, `devalue`.
-**Auth**: PAT in localStorage. No backend — everything runs client-side.
-`CLAUDE.md` is a symlink to this file.
+
+- **Stack**: Svelte 5 Runes, TypeScript, Vite, `@octokit/core`, `idb`,
+  `devalue`.
+- **Auth**: PAT in localStorage. No backend — everything runs client-side.
+- `CLAUDE.md` is a symlink to this file.
 
 ## Layout
 
@@ -31,7 +33,8 @@ Personalized feed of GitHub releases for starred repos.
 
 ## Coding standards (strict)
 
-- **Svelte 5**: Runes only (`$state`, `$derived`, `$props`). No `$:`/`export let`.
+- **Svelte 5**: Runes only (`$state`, `$derived`, `$props`). No
+  `$:`/`export let`.
 - **Logic** in `.svelte.ts` models, not components.
 - **TypeScript**: no `any`; explicit return types; async = `Promise<T>`.
 - **Imports**: extensionless; `.svelte.ts` drops the `.ts`. Point at siblings or
@@ -43,7 +46,8 @@ Personalized feed of GitHub releases for starred repos.
 
 ## Commands
 
-`pnpm types` · `pnpm lint` · `pnpm format` · `pnpm test` · `pnpm build` · `pnpm dev --open`
+`pnpm types` · `pnpm lint` · `pnpm format` · `pnpm test` · `pnpm build` ·
+`pnpm dev --open`
 
 `types` and `lint` each run their two `types:*`/`lint:*` tools in parallel with
 `--no-bail`: both finish, and either failing fails the script. Chaining with `;`
@@ -54,13 +58,14 @@ can't reproduce them.
 ## Deploy
 
 `.github/workflows/static.yml` uploads `dist/` to Pages on push to `main` and
-does **not** build. Build and commit `dist/` yourself or it ships the old bundle.
+does **not** build. Build and commit `dist/` yourself or it ships the old
+bundle.
 
 ## Don't break
 
-- **Refresh batches stay serial** via `RepoSync.refreshChain` — the endpoint that
-  hit the secondary rate limit. Manifest pages and description batches run in
-  parallel; descriptions serialize next if rate limits return.
+- **Refresh batches stay serial** via `RepoSync.refreshChain` — the endpoint
+  that hit the secondary rate limit. Manifest pages and description batches run
+  in parallel; descriptions serialize next if rate limits return.
 - **Release notes are only prefetched for cards that will render.**
   `RepoSync.mergeIntoFeed` filters on `isDisplayable`; hidden and ignored ones
   fetch from `release.svelte`'s intersect handler if a setting reveals them.
@@ -69,12 +74,12 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   trips the rate limit. `Release.descriptionRequested`, claimed before the first
   `await` in `fetchAll`, stops both paths fetching the first screenful.
 - **A failed or partial description batch blanks its cards.** Once retries are
-  spent, or a node comes back null, `fetchBatch` sets `''` on every release still
-  unset, else the spinner never clears and `descriptionRequested` blocks a
+  spent, or a node comes back null, `fetchBatch` sets `''` on every release
+  still unset, else the spinner never clears and `descriptionRequested` blocks a
   retry. It re-checks `isStale` first: a newer session's feed can hold the same
   ids.
-- **Re-check `isStale(sessionId)` after every `await`** (26 sites) against the id
-  the method was handed. `start`/`reset`/`clearCachedData` bump it via
+- **Re-check `isStale(sessionId)` after every `await`** (26 sites) against the
+  id the method was handed. `start`/`reset`/`clearCachedData` bump it via
   `Session.begin()`; `!octokit` alone can't tell a superseded chain from a live
   one after a new token is pasted in. Teardown (`wipeCache`, `clearCachedData`)
   uses `isSuperseded` instead — the token is already cleared there, so `isStale`
@@ -99,10 +104,12 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   attachment on the group re-runs every time `groups` re-derives, so each batch
   landing mid-load dragged the page back to the cursor. `select()` fires exactly
   once per key press.
-- **`Loader.clearState()` resets all three** of `Status`, `FeedStore`, `RepoSync`.
+- **`Loader.clearState()` resets all three** of `Status`, `FeedStore`,
+  `RepoSync`.
 - **`settings.disableCache` bypasses the `repos` store entirely** — the full
   query makes every node an `isFullRepo`, so no hydration, batches, or writes —
-  and `CacheEviction` clears it so an old snapshot can't be served on toggle-off.
+  and `CacheEviction` clears it so an old snapshot can't be served on
+  toggle-off.
 - **`FeedStore.descriptionKeys()` is the eviction survivor set**, from the feed,
   not the `repos` store, which is empty on a cache-disabled load.
 - **`Repository.updatedAt` likely does NOT bump on release-body edits.**
@@ -117,13 +124,14 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
 - **One retry policy per concurrent source.** The manifest pass and the refresh
   chain run at the same time, so they hold `MANIFEST_RETRY_POLICY` and
   `REFRESH_RETRY_POLICY` separately — sharing a key meant a landing page
-  retracting a batch's live retry warning, the same bug one level down.
-  Manifest pages do share a key with each other, which is intended: they're one
-  source, and the ladder should read as one message.
+  retracting a batch's live retry warning, the same bug one level down. Manifest
+  pages do share a key with each other, which is intended: they're one source,
+  and the ladder should read as one message.
 - **The fire-and-forget chains catch their own throws.** `run()` and the
   pagination recursion are entered with `void`, so a throw escaping
-  `processStarredReposPage` or `runRefreshBatch` would be an unhandled rejection:
-  no toast, no log, spinner up forever. Both funnel into `RepoSync.abortLoad`.
+  `processStarredReposPage` or `runRefreshBatch` would be an unhandled
+  rejection: no toast, no log, spinner up forever. Both funnel into
+  `RepoSync.abortLoad`.
 
 ## Gotchas
 
@@ -151,33 +159,32 @@ does **not** build. Build and commit `dist/` yourself or it ships the old bundle
   what lets `extractReleases` build a non-null `ReleaseObj.publishedAt`.
 - **Retries honour GitHub's own backoff** — `retry-after`, or
   `x-ratelimit-reset` once `x-ratelimit-remaining` is `0` — in place of the
-  exponential ladder, which otherwise spends every attempt inside the window.
-  A wait past `MAX_RATE_LIMIT_WAIT_MS` gives up and names the time instead.
+  exponential ladder, which otherwise spends every attempt inside the window. A
+  wait past `MAX_RATE_LIMIT_WAIT_MS` gives up and names the time instead.
 
 ## Testing
 
-`pnpm test` runs `vitest` over `tests/`: `helpers.test.ts`, `loader.test.ts`
-(`Status`, `Session`, `FeedStore`, plus a `Loader` construction smoke test and
-the debug dump),
-`retry.test.ts` (backoff, the rate-limit headers, toast keying, 401 teardown),
-`navigation.test.ts` (entry, stepping, clamping, unrenderable groups, the
-`handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`,
+`pnpm test` runs `vitest` over `tests/`: `helpers.test.ts` (`mergeSorted`,
+`chunk`, `formatRelativeTime`), `loader.test.ts` (the `idb*` wrappers, `Status`,
+`Session`, `FeedStore`, plus a `Loader` construction smoke test and the debug
+dump), `retry.test.ts` (backoff, the rate-limit headers, toast keying, 401
+teardown), `navigation.test.ts` (entry, stepping, clamping, unrenderable groups,
+the `handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`,
 `dumpSettings`), `github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts`
-(selective refresh, pruning, the serial chain, abort, rate-limit stop, a stale
-refresh, the completion flag), `description_sync.test.ts` (cache, claim,
-coalescing, blanking on failure, a stale cache read), and
-`cache_eviction.test.ts` (the daily gate and both sweeps).
-The components are verified manually with a real PAT via `pnpm dev`
-(Settings → Debug dumps state to the console).
+(selective refresh, pruning, unresolvable ids, the serial chain, abort,
+rate-limit stop, a stale refresh, the completion flag),
+`description_sync.test.ts` (cache, claim, coalescing, blanking on failure, a
+stale cache read), and `cache_eviction.test.ts` (the daily gate, both sweeps,
+and the cache-disabled clear). The components are verified manually with a real
+PAT via `pnpm dev` (Settings → Debug dumps state to the console).
 
-Specs stub `Session.isStale` rather than setting a token, and the pipeline
-specs stub the `octokit` getter too (`liveSession` in `tests/fixtures.ts`): the
-token is a module singleton, so a test that sets it would leak into every other
-spec in the file. The `RepoSync` specs route the stub `graphql` by query string
-to a fake GitHub. Specs that touch IDB fake only `setTimeout`, so
-fake-indexeddb's `setImmediate` still runs, and must not `await` `RepoSync.run`
-before advancing the timers: a single-page load awaits the refresh chain inside
-it.
+Specs stub `Session.isStale` rather than setting a token, and the pipeline specs
+stub the `octokit` getter too (`liveSession` in `tests/fixtures.ts`): the token
+is a module singleton, so a test that sets it would leak into every other spec
+in the file. The `RepoSync` specs route the stub `graphql` by query string to a
+fake GitHub. Specs that touch IDB fake only `setTimeout`, so fake-indexeddb's
+`setImmediate` still runs, and must not `await` `RepoSync.run` before advancing
+the timers: a single-page load awaits the refresh chain inside it.
 
 `tests/setup.ts` stubs `IntersectionObserver`, `localStorage`, and `matchMedia`,
 and imports `fake-indexeddb/auto` — jsdom has no IndexedDB, so without it

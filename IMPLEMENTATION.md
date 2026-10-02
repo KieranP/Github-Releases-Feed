@@ -1,10 +1,10 @@
 # Implementation
 
-Incremental-sync pipeline. A cheap manifest pass enumerates every starred
-repo (id + `updatedAt`); cached repos hydrate from IDB immediately, and
-only new or `updatedAt`-advanced repos are refetched in full. `updatedAt`
-bumps on repo metadata writes (pushes, description edits), so one
-comparison per repo replaces a full refetch of the whole starred set.
+Incremental-sync pipeline. A cheap manifest pass enumerates every starred repo
+(id + `updatedAt`); cached repos hydrate from IDB immediately, and only new or
+`updatedAt`-advanced repos are refetched in full. `updatedAt` bumps on repo
+metadata writes (pushes, description edits), so one comparison per repo replaces
+a full refetch of the whole starred set.
 
 Everything is threaded with a session id. `start()`, `reset()`, and
 `clearCachedData()` all call `Session.begin()`, and every continuation after an
@@ -13,7 +13,7 @@ Everything is threaded with a session id. `start()`, `reset()`, and
 ## Collaborators
 
 `Loader` (`src/loader.svelte.ts`) is a façade: it constructs the graph below,
-exposes the four values the UI reads, and owns the three entry points. Each
+exposes the five values the UI reads, and owns the three entry points. Each
 stage holds one job and only the dependencies it uses, and each lives in its own
 flat module beside `loader.svelte.ts`.
 
@@ -49,8 +49,8 @@ pre-incremental-sync behaviour. Those nodes arrive complete, so they skip the
 `repos` store entirely in both directions: no `getAll` hydration, no refresh
 batches, no writes — and `CacheEviction` clears the store outright, so a
 snapshot left by an earlier cached load can't be served once the toggle goes
-back off. Description caching is unaffected; its keys embed `updatedAt`, so
-they can't serve stale notes.
+back off. Description caching is unaffected; its keys embed `updatedAt`, so they
+can't serve stale notes.
 
 ## Load pipeline
 
@@ -158,41 +158,41 @@ flowchart TD
   restart -->|no| Idle([Login screen]):::ext
 ```
 
-**Legend**: blue = pipeline method · orange = IDB · green = in-memory
-state · purple = external · red = error.
+**Legend**: blue = pipeline method · orange = IDB · green = in-memory state ·
+purple = external · red = error.
 
 ## Invariants
 
 - **Refresh batches serialized** via `RepoSync.refreshChain` (GitHub secondary
   rate limit). Manifest pages and description batches run in parallel.
-- **`refreshRepos` returns an abort `boolean`** propagated through the
-  chain; abort skips `onComplete`, and so both the `lastAccessedAt` update
-  and eviction.
-- **`lastAccessedAt` only bumps on success** — it marks the "all caught
-  up" line. It is written to localStorage but not to the in-memory
-  `settings`, so the divider doesn't jump mid-session.
+- **`refreshRepos` returns an abort `boolean`** propagated through the chain;
+  abort skips `onComplete`, and so both the `lastAccessedAt` update and
+  eviction.
+- **`lastAccessedAt` only bumps on success** — it marks the "all caught up"
+  line. It is written to localStorage but not to the in-memory `settings`, so
+  the divider doesn't jump mid-session.
 - **`refreshChain` resets to `Promise.resolve(false)`** in `RepoSync.clear`,
   which `Loader.clearState` calls; a chain left resolved `true` by an earlier
   abort would short-circuit every batch of the next load.
 - **Description cache keyed by `${releaseId}-${updatedAt}`** (via
-  `descriptionKey`) so edited release notes auto-refresh. Writes key on
-  the release's own `updatedAt`, not the one `descriptionQuery` returns —
-  reads and eviction both key on the cached value.
+  `descriptionKey`) so edited release notes auto-refresh. Writes key on the
+  release's own `updatedAt`, not the one `descriptionQuery` returns — reads and
+  eviction both key on the cached value.
 - **Cached `releases.nodes` trimmed to a four-week window** on every refresh
   write and again during `CacheEviction.run`. `isReleaseInWindow`
   (`src/release_window.ts`) is the single definition of that edge, fixed when
   the module loads so every stage trims to the same date.
-- **`releasesByRepo`** maps repo id → release ids so `FeedStore.dropForRepos`
-  is O(batch) rather than O(feed) before each re-merge.
+- **`releasesByRepo`** maps repo id → release ids so `FeedStore.dropForRepos` is
+  O(batch) rather than O(feed) before each re-merge.
 - **`Status.advance` is called with the full batch size** on refresh (not the
   resolved count) so progress reaches 100% even when ids resolve to null.
   `progress` is clamped to 1 because concurrent star changes can overshoot.
 - **Eviction sweeps each store on its own terms.** `evictStaleRepos` trims
   aged-out releases out of cached repo rows (never deleting rows —
-  `deleteUnstarredRepos` owns that); `evictStaleDescriptions` deletes every
-  key the loaded feed doesn't reference. Deriving survivors from the feed
-  rather than the `repos` store is what makes it correct with the cache
-  disabled, where that store is never written.
+  `deleteUnstarredRepos` owns that); `evictStaleDescriptions` deletes every key
+  the loaded feed doesn't reference. Deriving survivors from the feed rather
+  than the `repos` store is what makes it correct with the cache disabled, where
+  that store is never written.
 - **With the cache disabled, `CacheEviction.run` clears `repos` instead of
   trimming it** — the store is a snapshot the load ignored, so it must not
   outlive it.

@@ -9,6 +9,7 @@ const config: OxfmtConfig = defineConfig({
   insertFinalNewline: true,
   objectWrap: 'preserve',
   printWidth: 80,
+  proseWrap: 'always',
   quoteProps: 'as-needed',
   semi: false,
   singleAttributePerLine: true,
