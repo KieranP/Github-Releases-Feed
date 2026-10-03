@@ -17,8 +17,8 @@ class IntersectionObserverStub {
 
 vi.stubGlobal('IntersectionObserver', IntersectionObserverStub)
 
-// Neither is available under jsdom here, and state.svelte reads both at module
-// load — so importing anything that touches settings needs them stubbed first.
+// Not available under jsdom here, and state.svelte reads it at module load, so
+// importing anything that touches settings needs it stubbed first.
 const storage = new Map<string, string>()
 
 vi.stubGlobal('localStorage', {
@@ -33,5 +33,3 @@ vi.stubGlobal('localStorage', {
     storage.clear()
   },
 })
-
-vi.stubGlobal('matchMedia', (): { matches: boolean } => ({ matches: false }))

@@ -1,5 +1,7 @@
 import { SvelteSet } from 'svelte/reactivity'
 
+import { applyColorScheme, initialTheme, type Theme } from './theme'
+
 function fetchAsSet(key: string): SvelteSet<string> {
   const json = localStorage.getItem(key)
   if (json !== null) {
@@ -26,25 +28,7 @@ function fetchAsBool(key: string): boolean {
   return localStorage.getItem(key) === 'true'
 }
 
-// A stored choice wins; the OS preference is only the default. ORing the two
-// made dark mode impossible to switch off on a dark-themed system.
-function initialDarkMode(): boolean {
-  const stored = localStorage.getItem('darkMode')
-  if (stored !== null) return stored === 'true'
-  return globalThis.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
-const darkMode = initialDarkMode()
-
-// Drives light-dark() in CSS; applied immediately to avoid a theme flash.
-export function applyColorScheme(dark: boolean): void {
-  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-}
-
-applyColorScheme(darkMode)
-
 export const settings: {
-  darkMode: boolean
   disableCache: boolean
   expandDescriptions: boolean
   githubToken: string | null
@@ -56,8 +40,8 @@ export const settings: {
   showIgnoredPrereleases: boolean
   showIgnoredRepos: boolean
   showLanguages: boolean
+  theme: Theme
 } = $state({
-  darkMode,
   disableCache: fetchAsBool('disableCache'),
   expandDescriptions: fetchAsBool('expandDescriptions'),
   githubToken: localStorage.getItem('githubToken'),
@@ -69,7 +53,11 @@ export const settings: {
   showIgnoredPrereleases: fetchAsBool('showIgnoredPrereleases'),
   showIgnoredRepos: fetchAsBool('showIgnoredRepos'),
   showLanguages: fetchAsBool('showLanguages'),
+  theme: initialTheme(),
 })
+
+// Applied at module load, before the first paint, to avoid a theme flash.
+applyColorScheme(settings.theme)
 
 // Keeps only the token's prefix, so a pasted dump can't leak a usable one.
 export function dumpSettings(): object {

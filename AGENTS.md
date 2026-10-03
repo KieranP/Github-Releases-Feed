@@ -21,7 +21,9 @@ Personalized feed of GitHub releases for starred repos.
   `cache_eviction.ts`, `release_window.ts`.
 - `src/github.ts` — queries + types + `graphqlAllowingPartials`.
 - `src/db.ts` — IDB (`github-releases`, v4): `repos` + `descriptions`.
-- `src/state.svelte.ts` — settings (localStorage) + color scheme.
+- `src/state.svelte.ts` — settings (localStorage).
+- `src/theme.ts` — Auto/Light/Dark: the stored choice, the cycle, the button's
+  icon and label, and the `color-scheme` it pins.
 - `src/navigation.svelte.ts` — the arrow-key cursor over `groups`, held as a
   group key. Owns the keydown guards, the on-screen scan that decides where a
   press enters, and the scroll; `releases.svelte` only wires it.
@@ -170,13 +172,14 @@ bundle.
 dump), `retry.test.ts` (backoff, the rate-limit headers, toast keying, 401
 teardown), `navigation.test.ts` (entry, stepping, clamping, unrenderable groups,
 the `handleKey` guards, and the scroll), `state.test.ts` (`fetchAsDate`,
-`dumpSettings`), `github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts`
-(selective refresh, pruning, unresolvable ids, the serial chain, abort,
-rate-limit stop, a stale refresh, the completion flag),
-`description_sync.test.ts` (cache, claim, coalescing, blanking on failure, a
-stale cache read), and `cache_eviction.test.ts` (the daily gate, both sweeps,
-and the cache-disabled clear). The components are verified manually with a real
-PAT via `pnpm dev` (Settings → Debug dumps state to the console).
+`dumpSettings`), `theme.test.ts` (the stored choice, the cycle, the scheme),
+`github.test.ts` (`stabiliseAssetUrls`), `repo_sync.test.ts` (selective refresh,
+pruning, unresolvable ids, the serial chain, abort, rate-limit stop, a stale
+refresh, the completion flag), `description_sync.test.ts` (cache, claim,
+coalescing, blanking on failure, a stale cache read), and
+`cache_eviction.test.ts` (the daily gate, both sweeps, and the cache-disabled
+clear). The components are verified manually with a real PAT via `pnpm dev`
+(Settings → Debug dumps state to the console).
 
 Specs stub `Session.isStale` rather than setting a token, and the pipeline specs
 stub the `octokit` getter too (`liveSession` in `tests/fixtures.ts`): the token
@@ -186,6 +189,6 @@ fake GitHub. Specs that touch IDB fake only `setTimeout`, so fake-indexeddb's
 `setImmediate` still runs, and must not `await` `RepoSync.run` before advancing
 the timers: a single-page load awaits the refresh chain inside it.
 
-`tests/setup.ts` stubs `IntersectionObserver`, `localStorage`, and `matchMedia`,
-and imports `fake-indexeddb/auto` — jsdom has no IndexedDB, so without it
-`db.ts`'s top-level open fails and logs on every run.
+`tests/setup.ts` stubs `IntersectionObserver` and `localStorage`, and imports
+`fake-indexeddb/auto` — jsdom has no IndexedDB, so without it `db.ts`'s
+top-level open fails and logs on every run.

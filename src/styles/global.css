@@ -1,5 +1,5 @@
 :root {
-  /* Active scheme is set explicitly on documentElement to drive light-dark() */
+  /* Light or Dark pins the scheme on documentElement; Auto leaves this */
   color-scheme: light dark;
 
   --body-background-color: light-dark(#fafafa, #050505);

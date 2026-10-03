@@ -22,7 +22,7 @@ with the commands below.
   press picks up from what's on screen.
 - **Release notes** — rendered inline, collapsed by default, expandable per
   release or globally.
-- **Dark mode** — follows system preference, with a manual toggle.
+- **Theme** — Auto, Light, or Dark. Auto follows the system preference.
 - **Reduced motion** — follows system preference: scrolling settles instantly,
   and the loading spinner fades instead of bouncing.
 

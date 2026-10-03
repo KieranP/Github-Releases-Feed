@@ -1,8 +1,13 @@
 <script lang="ts">
   import settingsSvg from '../assets/gear.svg?raw'
   import githubSvg from '../assets/github.svg?raw'
-  import themeSvg from '../assets/theme.svg?raw'
-  import { applyColorScheme, persist, settings } from '../state.svelte'
+  import { persist, settings } from '../state.svelte'
+  import {
+    applyColorScheme,
+    nextTheme,
+    THEME_ICONS,
+    themeLabel,
+  } from '../theme'
 
   interface Props {
     onclearcache: () => void
@@ -15,10 +20,13 @@
 
   let popoverElement: HTMLDivElement | undefined = $state()
 
-  function toggleDarkMode(): void {
-    const darkMode = !settings.darkMode
-    applyColorScheme(darkMode)
-    saveBooleanSetting('darkMode', darkMode)
+  const themeButtonLabel = $derived(themeLabel(settings.theme))
+
+  function cycleTheme(): void {
+    const theme = nextTheme(settings.theme)
+    applyColorScheme(theme)
+    settings.theme = theme
+    persist('theme', theme)
   }
 
   function saveBooleanSetting(
@@ -41,12 +49,13 @@
   </button>
 
   <button
-    aria-label="Toggle dark mode"
-    onclick={toggleDarkMode}
+    aria-label={themeButtonLabel}
+    onclick={cycleTheme}
+    title={themeButtonLabel}
     type="button"
   >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    {@html themeSvg}
+    {@html THEME_ICONS[settings.theme]}
   </button>
 
   <a
