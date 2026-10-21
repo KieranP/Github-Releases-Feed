@@ -162,7 +162,7 @@ const SIGNED_ASSET_URL =
 // `descriptionHTML` renders attachments as URLs that expire in five minutes,
 // which outlive neither the cache nor a card left unread. Swap in the redirect.
 export function stabiliseAssetUrls(html: string): string {
-  return html.replace(
+  return html.replaceAll(
     SIGNED_ASSET_URL,
     'https://github.com/user-attachments/assets/$<assetId>',
   )
